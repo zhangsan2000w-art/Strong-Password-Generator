@@ -15,9 +15,9 @@ AI-generated or AI-edited code was reviewed through source inspection and execut
 ## Verification
 
 - MoonBit check runs with warnings denied.
-- Thirty-five deterministic MoonBit tests cover generation policies, boundaries, character classes, output postconditions, passphrase formatting, dictionary indexes, rejection sampling, transitions, input gestures, result lifecycle, view models, battery policy, strength classification, and sound waveforms.
-- After the entry was rejected for having fewer than 1,000 MoonBit lines, AI assistance helped migrate independently testable product policy from C to MoonBit. The result is 1,630 production lines plus 659 test lines, or 1,223 effective production lines after excluding tests, blanks, and comments; the production gate requires at least 1,000.
-- ESP-IDF 5.5.3 compiles generated MoonBit C into the ESP32-C3 application.
+- Eighty-six deterministic MoonBit tests cover generation policies, boundaries, character classes, output postconditions, passphrase formatting, dictionary indexes, rejection sampling, transitions, input gestures, result lifecycle, view models, battery policy, strength classification, sound waveforms, and the FAP_SCREENSHOT_V1 command matcher, reply header builder, and snapshot geometry check. Host-side Python tests cover the screenshot tool's header parsing, RGB565 conversion, and PNG writer.
+- After the entry was rejected for having fewer than 1,000 MoonBit lines, AI assistance helped migrate independently testable product policy from C to MoonBit. The codebase has since grown to 2,713 effective production MoonBit lines plus 1,423 test lines counted by the same rule; the production gate requires at least 1,000.
+- ESP-IDF 5.5.3 compiles generated MoonBit C into the ESP32-C3 application. `CONFIG_LV_USE_SNAPSHOT` is enabled for the serial screenshot.
 - The merged image verifier checks bootloader, partition table, application offsets, partition fit, and the complete `-full.bin` image.
 - An earlier image was flashed to a real AI Passport and confirmed layout and PIN output. The user later confirmed that compressed CJK text rendered but reported thin strokes. The first battery-profile change passed the initial boot display but later showed 77%, or 0% on an unplugged boot. The heavier font, no-reset fuel-gauge behavior, and success chime still require a fresh device run.
 

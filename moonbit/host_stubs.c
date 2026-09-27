@@ -17,6 +17,13 @@ int32_t passport_output_push(int32_t ch)
     return ch >= 0 && ch <= 127;
 }
 
+void passport_screenshot_header_reset(void) {}
+
+int32_t passport_screenshot_header_push(int32_t ch)
+{
+    return ch >= 0 && ch <= 127;
+}
+
 int32_t passport_dictionary_count(void)
 {
     return 2;

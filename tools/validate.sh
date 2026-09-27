@@ -52,6 +52,7 @@ run_static_checks() {
         -o "${test_dir}/test_demo_navigation"
     "${test_dir}/test_demo_navigation"
     PYTHONDONTWRITEBYTECODE=1 "${python_bin}" tests/test_verify_firmware.py
+    PYTHONDONTWRITEBYTECODE=1 "${python_bin}" tests/test_screenshot_convert.py
     rm -rf "${test_dir}"
     echo "Host tests: PASS"
 }

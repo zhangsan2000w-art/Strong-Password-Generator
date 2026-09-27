@@ -36,11 +36,12 @@ MoonBit owns the product rules. C owns the platform boundary. No MoonBit core mo
 | `battery.mbt` | CW2017 SOC/voltage trust and display policy |
 | `sound.mbt` | Success-note sequence, envelope, and PCM samples |
 | `ble_keyboard.mbt` | Send eligibility, transport-state presentation, and printable ASCII to USB HID mapping |
+| `screenshot.mbt` | FAP_SCREENSHOT_V1 command matcher, reply header builder, and snapshot geometry check |
 | `ffi.mbt` | Stable exported C API and platform callbacks |
 
 The state is packed into a `UInt64` so the C adapter treats it as an opaque value. State transitions clear the one-shot action field before processing each input. A generation action can therefore be repeated intentionally by pressing `OK` again on the generate row.
 
-There are 1,630 production MoonBit lines, or 1,223 effective lines after excluding tests, blanks, and comments. The 659 MoonBit test lines are tracked separately and cannot satisfy the production threshold. Repository checks prevent effective production MoonBit from dropping below 1,000 lines.
+There are 2,713 effective production MoonBit lines (tests, blanks, and comments excluded) plus 1,423 MoonBit test lines counted by the same rule. Repository checks prevent effective production MoonBit from dropping below 1,000 lines.
 
 ## Platform integration
 
