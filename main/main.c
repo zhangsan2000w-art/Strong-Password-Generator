@@ -6,6 +6,7 @@
 #include "bsp_i2c.h"
 #include "bsp_pins.h"
 #include "esp_log.h"
+#include "fap_screenshot.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
 #include "freertos/task.h"
@@ -126,6 +127,9 @@ void app_main(void)
     if (ble_error != ESP_OK) {
         ESP_LOGW(TAG, "BLE keyboard unavailable: %s", esp_err_to_name(ble_error));
     }
+
+    /* Observational serial screenshot service; starts its own worker task. */
+    fap_screenshot_start();
 
     ESP_LOGI(
         TAG,

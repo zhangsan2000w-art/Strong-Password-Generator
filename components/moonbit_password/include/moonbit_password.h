@@ -89,6 +89,12 @@ int32_t passport_moonbit_sound_volume(void);
 int32_t passport_moonbit_sound_note_count(void);
 int32_t passport_moonbit_sound_note_samples(int32_t note);
 int32_t passport_moonbit_sound_sample(int32_t note, int32_t sample_index);
+/* FAP_SCREENSHOT_V1 serial screenshot protocol core (moonbit/screenshot.mbt). */
+int32_t passport_moonbit_screenshot_command_length(void);
+int32_t passport_moonbit_screenshot_matcher_initial(void);
+int32_t passport_moonbit_screenshot_matcher_feed(int32_t state, int32_t byte);
+int32_t passport_moonbit_screenshot_header_build(int32_t width, int32_t height, int32_t payload);
+int32_t passport_moonbit_screenshot_geometry_ok(int32_t width, int32_t height, int32_t stride, int32_t data_size, int32_t expected_width, int32_t expected_height);
 
 #ifdef __cplusplus
 }

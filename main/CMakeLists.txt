@@ -1,5 +1,6 @@
 idf_component_register(
-    SRCS "main.c"
+    SRCS "fap_screenshot.c"
+         "main.c"
          "password_app.c"
          "password_ble_keyboard.c"
          "password_platform.c"
@@ -10,5 +11,5 @@ idf_component_register(
          "ui_pixel.c"
          "ui_pixel_math.c"
     INCLUDE_DIRS "."
-    REQUIRES bsp bootloader_support bt esp_hid esp_hw_support mbedtls moonbit_password nvs_flash
+    REQUIRES bsp bootloader_support bt esp_driver_usb_serial_jtag esp_hid esp_hw_support mbedtls moonbit_password nvs_flash
 )
