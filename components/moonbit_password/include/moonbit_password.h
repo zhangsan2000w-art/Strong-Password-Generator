@@ -38,6 +38,8 @@ int32_t passport_moonbit_ble_keyboard_should_advertise(int32_t status, int32_t c
 int32_t passport_moonbit_ble_keyboard_retry_ms(void);
 int32_t passport_moonbit_ble_keyboard_link_event(int32_t state, int32_t event);
 int32_t passport_moonbit_ble_keyboard_link_ready(int32_t state);
+int32_t passport_moonbit_ble_keyboard_pairing_timeout_ms(void);
+int32_t passport_moonbit_ble_keyboard_pairing_stalled(int32_t state, int32_t elapsed_ms);
 int32_t passport_moonbit_ble_keyboard_link_status(int32_t state);
 int32_t passport_moonbit_ble_keyboard_action(uint64_t state, int32_t status);
 int32_t passport_moonbit_generate(uint64_t state);
