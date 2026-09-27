@@ -128,7 +128,9 @@ void app_main(void)
         ESP_LOGW(TAG, "BLE keyboard unavailable: %s", esp_err_to_name(ble_error));
     }
 
-    /* Observational serial screenshot service; starts its own worker task. */
+    /* Observational serial screenshot service; starts its own worker task.
+     * Capture suspends the BLE stack briefly to free its RAM (see
+     * fap_screenshot.h) and resumes it right after the transfer. */
     fap_screenshot_start();
 
     ESP_LOGI(

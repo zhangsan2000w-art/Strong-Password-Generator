@@ -42,9 +42,11 @@ python tools/screenshot.py --raw dump.bin --width 240 --height 320 --output scre
   回调收回字节。
 - `main/fap_screenshot.c` 承载平台边界：显式安装 USB-Serial-JTAG 驱动
   （RX 256 字节、TX 1024 字节）、低于 LVGL 的优先级 3 读取任务、满屏快照
-  缓冲（首次截屏时才从内部堆分配并常驻复用，把启动期 RAM 留给 NimBLE
-  协议栈；在 `bsp_lvgl_lock()` 下用 `lv_snapshot_take_to_draw_buf()` 渲染）、
-  按 TX 环形缓冲定标的 512 字节分块流式发送，以及二进制窗口内的日志静音。
+  缓冲（每次捕获时从内部堆分配；在 `bsp_lvgl_lock()` 下用
+  `lv_snapshot_take_to_draw_buf()` 渲染）、按 TX 环形缓冲定标的 512 字节
+  分块流式发送，以及二进制窗口内的日志静音。本板无 PSRAM，150KB 缓冲与
+  NimBLE 无法共存：捕获期间会临时挂起蓝牙栈（NVS 中的 bond 不受影响，
+  捕获后自动重新广播）；蓝牙正在配对/连接/输入时直接跳过捕获。
 - `tools/screenshot.py` 是主机端抓取/转换工具；其纯函数由
   `tests/test_screenshot_convert.py` 覆盖。
 

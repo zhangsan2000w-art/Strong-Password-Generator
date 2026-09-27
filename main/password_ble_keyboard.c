@@ -2,8 +2,11 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include <string.h>
 
+#include "esp_bt.h"
+#include "esp_heap_caps.h"
 #include "esp_hid_common.h"
 #include "esp_hidd.h"
 #include "esp_log.h"
@@ -72,6 +75,9 @@ static esp_hidd_dev_t *s_hid_device;
 static QueueHandle_t s_send_queue;
 static TaskHandle_t s_send_task;
 static portMUX_TYPE s_state_lock = portMUX_INITIALIZER_UNLOCKED;
+static volatile bool s_stack_suspended;
+/* Teardown profiling: free internal heap after each suspend stage. */
+static uint32_t s_suspend_stage_heap[5];
 static volatile password_ble_status_t s_status = PASSWORD_BLE_STARTING;
 static volatile int32_t s_link_state;
 static uint16_t s_connection_handle = BLE_HS_CONN_HANDLE_NONE;
@@ -430,6 +436,89 @@ static void send_task(void *argument)
     }
 }
 
+/* Bring the NimBLE host and HID device up. Called once from init and again
+ * after every screenshot-triggered suspend. Expects the send queue/task to
+ * exist and NVS to be initialized. Bonds live in NVS and survive stop/start. */
+static esp_err_t ble_stack_start(void)
+{
+    esp_err_t error = nimble_port_init();
+    if (error != ESP_OK) return error;
+
+    ble_hs_cfg.sm_io_cap = BLE_HS_IO_NO_INPUT_OUTPUT;
+    ble_hs_cfg.sm_bonding = 1;
+    ble_hs_cfg.sm_mitm = 0;
+    ble_hs_cfg.sm_sc = 1;
+    ble_hs_cfg.sm_our_key_dist = BLE_SM_PAIR_KEY_DIST_ID |
+        BLE_SM_PAIR_KEY_DIST_ENC;
+    ble_hs_cfg.sm_their_key_dist = BLE_SM_PAIR_KEY_DIST_ID |
+        BLE_SM_PAIR_KEY_DIST_ENC;
+    ble_store_config_init();
+    ble_hs_cfg.store_status_cb = ble_store_util_status_rr;
+
+    error = esp_hidd_dev_init(
+        &s_hid_config, ESP_HID_TRANSPORT_BLE, hid_event, &s_hid_device
+    );
+    if (error != ESP_OK) {
+        nimble_port_deinit();
+        return error;
+    }
+
+    int rc = ble_svc_gap_device_name_set(PASSWORD_BLE_DEVICE_NAME);
+    if (rc != 0) {
+        ESP_LOGE(TAG, "Failed to set GAP device name: rc=%d", rc);
+        esp_hidd_dev_deinit(s_hid_device);
+        s_hid_device = NULL;
+        nimble_port_deinit();
+        return ESP_FAIL;
+    }
+
+    if (ble_gap_event_listener_register(&s_gap_listener, gap_event, NULL) != 0) {
+        esp_hidd_dev_deinit(s_hid_device);
+        s_hid_device = NULL;
+        nimble_port_deinit();
+        return ESP_FAIL;
+    }
+
+    set_connection_handle(BLE_HS_CONN_HANDLE_NONE);
+    s_link_state = 0;
+    set_status(PASSWORD_BLE_STARTING);
+    nimble_port_freertos_init(host_task);
+    return ESP_OK;
+}
+
+/* Tear the stack down and release its internal RAM so a full-screen snapshot
+ * buffer can exist. Order matters: HID first (stops advertising), then the
+ * NimBLE host, then the controller, and finally the controller memory. */
+static void ble_stack_stop(void)
+{
+    s_suspend_stage_heap[0] = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
+    if (s_hid_device) {
+        esp_hidd_dev_deinit(s_hid_device);
+        s_hid_device = NULL;
+    }
+    s_suspend_stage_heap[1] = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
+    if (nimble_port_stop() == 0) {
+        nimble_port_deinit();
+    } else {
+        ESP_LOGW(TAG, "NimBLE host was not running during suspend");
+    }
+    s_suspend_stage_heap[2] = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
+    if (esp_bt_controller_get_status() == ESP_BT_CONTROLLER_STATUS_ENABLED) {
+        (void)esp_bt_controller_disable();
+    }
+    if (esp_bt_controller_get_status() == ESP_BT_CONTROLLER_STATUS_INITED) {
+        (void)esp_bt_controller_deinit();
+    }
+    s_suspend_stage_heap[3] = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
+    /* 注意：这里不能调用 esp_bt_controller_mem_release(ESP_BT_MODE_BLE)。
+     * 在 ESP32-C3 上释放后控制器无法重新初始化（重初始化跳进已释放内存，
+     * 实测 Instruction access fault @ 0x0）。deinit 释放的动态内存已足够。 */
+    disarm_pairing_watchdog();
+    set_connection_handle(BLE_HS_CONN_HANDLE_NONE);
+    s_link_state = 0;
+    s_suspend_stage_heap[4] = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
+}
+
 esp_err_t password_ble_keyboard_init(void)
 {
     if (s_send_queue || s_hid_device) return ESP_ERR_INVALID_STATE;
@@ -447,60 +536,55 @@ esp_err_t password_ble_keyboard_init(void)
         return ESP_ERR_NO_MEM;
     }
 
-    error = nimble_port_init();
-    if (error != ESP_OK) goto fail;
-
-    ble_hs_cfg.sm_io_cap = BLE_HS_IO_NO_INPUT_OUTPUT;
-    ble_hs_cfg.sm_bonding = 1;
-    ble_hs_cfg.sm_mitm = 0;
-    ble_hs_cfg.sm_sc = 1;
-    ble_hs_cfg.sm_our_key_dist = BLE_SM_PAIR_KEY_DIST_ID |
-        BLE_SM_PAIR_KEY_DIST_ENC;
-    ble_hs_cfg.sm_their_key_dist = BLE_SM_PAIR_KEY_DIST_ID |
-        BLE_SM_PAIR_KEY_DIST_ENC;
-    ble_store_config_init();
-    ble_hs_cfg.store_status_cb = ble_store_util_status_rr;
-
-    error = esp_hidd_dev_init(
-        &s_hid_config, ESP_HID_TRANSPORT_BLE, hid_event, &s_hid_device
-    );
-    if (error != ESP_OK) goto fail_nimble;
-
-    int rc = ble_svc_gap_device_name_set(PASSWORD_BLE_DEVICE_NAME);
-    if (rc != 0) {
-        ESP_LOGE(TAG, "Failed to set GAP device name: rc=%d", rc);
-        error = ESP_FAIL;
-        goto fail_hid;
+    error = ble_stack_start();
+    if (error != ESP_OK) {
+        if (s_send_task) {
+            vTaskDelete(s_send_task);
+            s_send_task = NULL;
+        }
+        if (s_send_queue) {
+            vQueueDelete(s_send_queue);
+            s_send_queue = NULL;
+        }
+        set_status(PASSWORD_BLE_ERROR);
+        ESP_LOGE(TAG, "BLE keyboard initialization failed: %s", esp_err_to_name(error));
+        return error;
     }
-
-    if (ble_gap_event_listener_register(&s_gap_listener, gap_event, NULL) != 0) {
-        error = ESP_FAIL;
-        goto fail_hid;
-    }
-
-    set_connection_handle(BLE_HS_CONN_HANDLE_NONE);
-    s_link_state = 0;
-    set_status(PASSWORD_BLE_STARTING);
-    nimble_port_freertos_init(host_task);
     return ESP_OK;
+}
 
-fail_hid:
-    esp_hidd_dev_deinit(s_hid_device);
-    s_hid_device = NULL;
-fail_nimble:
-    nimble_port_deinit();
-fail:
-    if (s_send_task) {
-        vTaskDelete(s_send_task);
-        s_send_task = NULL;
+bool password_ble_keyboard_stack_suspend(void)
+{
+    if (s_stack_suspended) return true;
+    password_ble_status_t status = password_ble_keyboard_status();
+    if (status == PASSWORD_BLE_PAIRING || status == PASSWORD_BLE_CONNECTED ||
+        status == PASSWORD_BLE_SENDING || status == PASSWORD_BLE_SENT) {
+        return false; /* busy: never interrupt pairing or typing */
     }
-    if (s_send_queue) {
-        vQueueDelete(s_send_queue);
-        s_send_queue = NULL;
-    }
+    ble_stack_stop();
+    s_stack_suspended = true;
     set_status(PASSWORD_BLE_ERROR);
-    ESP_LOGE(TAG, "BLE keyboard initialization failed: %s", esp_err_to_name(error));
-    return error;
+    ESP_LOGI(TAG, "BLE stack suspended; RAM released for capture");
+    return true;
+}
+
+void password_ble_keyboard_stack_resume(void)
+{
+    if (!s_stack_suspended) return;
+    s_stack_suspended = false;
+    if (ble_stack_start() != ESP_OK) {
+        set_status(PASSWORD_BLE_ERROR);
+        ESP_LOGE(TAG, "BLE stack resume failed");
+        return;
+    }
+    ESP_LOGI(TAG, "BLE stack resumed; advertising will follow");
+}
+
+void password_ble_keyboard_suspend_profile(uint32_t out[5])
+{
+    for (int index = 0; index < 5; index++) {
+        out[index] = s_suspend_stage_heap[index];
+    }
 }
 
 esp_err_t password_ble_keyboard_send(const char *password)
