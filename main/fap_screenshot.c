@@ -4,11 +4,13 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "bsp_display.h"
 #include "bsp_pins.h"
 #include "driver/usb_serial_jtag.h"
 #include "driver/usb_serial_jtag_vfs.h"
+#include "esp_heap_caps.h"
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -33,9 +35,10 @@
 // MoonBit 协议头最长约 40 字节；留出裕量，越界由 push 回调拒绝。
 #define SCREENSHOT_HEADER_MAX 64
 
-// 无 PSRAM：满屏 RGB565 缓冲必须静态预留，运行时堆凑不出 150KB 连续块。
-static uint8_t s_snapshot_pixels[BSP_LCD_W * BSP_LCD_H * 2]
-    __attribute__((aligned(64)));
+// 满屏 RGB565 缓冲在首次截屏时才从内部堆分配、成功后常驻复用：
+// 启动阶段必须把内部 RAM 完整留给 NimBLE（HCI/控制器要大块连续内存，
+// 静态预留 150KB 会直接让 nimble host init failed，蓝牙整体不可用）。
+static uint8_t *s_snapshot_pixels;
 static lv_draw_buf_t s_snapshot_buf;
 static bool s_snapshot_buf_ready;
 static TaskHandle_t s_task_handle;
@@ -60,7 +63,14 @@ int32_t passport_screenshot_header_push(int32_t ch)
 
 static void ensure_snapshot_buffer(void)
 {
-    if (s_snapshot_buf_ready) return;
+    if (s_snapshot_pixels != NULL) return;
+    // 首次截屏才分配；成功后常驻（不释放，避免反复分配产生碎片）。
+    s_snapshot_pixels = heap_caps_malloc(
+        BSP_LCD_W * BSP_LCD_H * 2, MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL);
+    if (s_snapshot_pixels == NULL) {
+        ESP_LOGW(TAG, "snapshot buffer unavailable; capture skipped");
+        return;
+    }
     // stride 显式取 width*2，保证紧凑排布（本板 LV_DRAW_BUF_STRIDE_ALIGN=1）。
     (void)lv_draw_buf_init(
         &s_snapshot_buf,
@@ -69,7 +79,7 @@ static void ensure_snapshot_buffer(void)
         LV_COLOR_FORMAT_RGB565,
         BSP_LCD_W * 2,
         s_snapshot_pixels,
-        sizeof(s_snapshot_pixels)
+        BSP_LCD_W * BSP_LCD_H * 2
     );
     s_snapshot_buf_ready = true;
 }
@@ -77,6 +87,7 @@ static void ensure_snapshot_buffer(void)
 static bool render_snapshot(void)
 {
     ensure_snapshot_buffer();
+    if (!s_snapshot_buf_ready) return false;
     // LVGL 非线程安全：只在渲染瞬间持锁，传输期间 UI 照常刷新。
     if (!bsp_lvgl_lock(SCREENSHOT_LVGL_LOCK_TIMEOUT_MS)) {
         ESP_LOGW(TAG, "LVGL lock timeout; screenshot skipped");
@@ -123,7 +134,7 @@ static void send_reply(void)
 {
     if (!render_snapshot()) return;
 
-    const int32_t payload = (int32_t)sizeof(s_snapshot_pixels);
+    const int32_t payload = BSP_LCD_W * BSP_LCD_H * 2;
     const int32_t header_len = passport_moonbit_screenshot_header_build(
         BSP_LCD_W, BSP_LCD_H, payload);
     if (header_len <= 0 || (size_t)header_len != s_header_len) {
@@ -135,7 +146,7 @@ static void send_reply(void)
     // 混入一个日志字节整幅图就错位。恢复与后续日志严格放在窗口之外。
     esp_log_level_set("*", ESP_LOG_NONE);
     const bool ok = write_chunked(s_header, s_header_len) &&
-                    write_chunked(s_snapshot_pixels, sizeof(s_snapshot_pixels));
+                    write_chunked(s_snapshot_pixels, (size_t)payload);
     (void)usb_serial_jtag_wait_tx_done(pdMS_TO_TICKS(SCREENSHOT_WRITE_TIMEOUT_MS));
     esp_log_level_set("*", CONFIG_LOG_DEFAULT_LEVEL);
 

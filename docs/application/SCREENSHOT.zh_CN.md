@@ -41,10 +41,10 @@ python tools/screenshot.py --raw dump.bin --width 240 --height 320 --output scre
   几何校验。C 适配层只传整数，并通过两个 `passport_screenshot_header_*`
   回调收回字节。
 - `main/fap_screenshot.c` 承载平台边界：显式安装 USB-Serial-JTAG 驱动
-  （RX 256 字节、TX 1024 字节）、低于 LVGL 的优先级 3 读取任务、静态
-  64 字节对齐的满屏快照缓冲（在 `bsp_lvgl_lock()` 下用
-  `lv_snapshot_take_to_draw_buf()` 渲染）、按 TX 环形缓冲定标的 512 字节
-  分块流式发送，以及二进制窗口内的日志静音。
+  （RX 256 字节、TX 1024 字节）、低于 LVGL 的优先级 3 读取任务、满屏快照
+  缓冲（首次截屏时才从内部堆分配并常驻复用，把启动期 RAM 留给 NimBLE
+  协议栈；在 `bsp_lvgl_lock()` 下用 `lv_snapshot_take_to_draw_buf()` 渲染）、
+  按 TX 环形缓冲定标的 512 字节分块流式发送，以及二进制窗口内的日志静音。
 - `tools/screenshot.py` 是主机端抓取/转换工具；其纯函数由
   `tests/test_screenshot_convert.py` 覆盖。
 

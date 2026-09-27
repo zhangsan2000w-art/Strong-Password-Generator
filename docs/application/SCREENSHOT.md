@@ -46,10 +46,12 @@ followed by 153,600 pixel bytes.
   callbacks.
 - `main/fap_screenshot.c` owns the platform boundary: explicit
   USB-Serial-JTAG driver installation (256-byte RX, 1024-byte TX), a
-  priority-3 reader task below the LVGL task, the static 64-byte-aligned
-  full-screen snapshot buffer rendered with `lv_snapshot_take_to_draw_buf()`
-  under `bsp_lvgl_lock()`, 512-byte chunked streaming sized to the TX ring
-  buffer, and log muting during the binary window.
+  priority-3 reader task below the LVGL task, the full-screen snapshot buffer
+  (allocated from internal heap at the first capture and kept for reuse, so
+  boot-time RAM stays available to the NimBLE stack) rendered with
+  `lv_snapshot_take_to_draw_buf()` under `bsp_lvgl_lock()`, 512-byte chunked
+  streaming sized to the TX ring buffer, and log muting during the binary
+  window.
 - `tools/screenshot.py` is the host-side capture/convert tool; its pure
   helpers are covered by `tests/test_screenshot_convert.py`.
 
