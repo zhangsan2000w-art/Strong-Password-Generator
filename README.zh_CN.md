@@ -1,12 +1,31 @@
-# Strong Password Generator_AI Passport
+# SecureGen for MoonBit
 
 [English](README.md) | 简体中文
 
-**Strong Password Generator_AI Passport** 是一款面向 FoloToy AI Passport 和 MoonBit Hackathon 2026 的离线三键强密码生成器。
+**SecureGen** 是一个可复用的 MoonBit 凭据生成引擎，提供类型化策略、调用方注入
+随机熵、可移植应用 API 和可控内存分配的嵌入式 API。本仓库包含两个相互独立的消费
+端：使用宿主安全随机源的 CLI，以及运行在 FoloToy AI Passport 上的强密码生成固件。
+
+固件是 MoonBit 包的参考应用，不是这个项目的库边界。其他项目可以直接导入
+`moonbit/securegen`，而不依赖 ESP-IDF、FoloToy、LVGL、BLE、文件系统或网络。
+
+审查时可先阅读[审查者快速验证指南](docs/competition/REVIEW_GUIDE.zh_CN.md)，再运行：
+
+```bash
+moon -C moonbit test -p folotoy/strong-password-generator-ai-passport/securegen \
+  --target wasm-gc --release --deny-warn
+moon -C moonbit run examples/cli --target js --release -- --profile strict --length 24
+```
+
+## FoloToy 参考应用
 
 固件启动后直接进入生成器，不联网、不保存密码历史，也不重新定义系统电源键。只有用户明确选择**发送**后，当前生成结果才会通过已配对且加密的 BLE HID 键盘连接离开设备。
 
-## 功能
+嵌入式应用是一款面向 FoloToy AI Passport 的离线三键强密码生成器。固件启动后直接
+进入生成器，不联网、不保存密码历史；只有用户明确选择**发送**后，当前结果才会通过
+加密的 BLE HID 连接离开设备。
+
+### 固件功能
 
 - **随机**：6～30 个可显示 ASCII 字符，默认长度 10；字母始终开启，可选数字和符号。开启的可选字符类别保证至少出现一个。
 - **易记**：3～6 个离线单词，默认 4 个；支持首字母大写、完整单词或四字符缩写，以及 `-`、`.`、`_` 分隔符。

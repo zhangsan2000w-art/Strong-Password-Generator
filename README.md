@@ -1,12 +1,36 @@
-# Strong Password Generator_AI Passport
+# SecureGen for MoonBit
 
 English | [简体中文](README.zh_CN.md)
 
-**Strong Password Generator_AI Passport** is an offline three-button password generator built for the FoloToy AI Passport and MoonBit Hackathon 2026.
+**SecureGen** is a reusable MoonBit credential-generation engine with typed
+policies, caller-injected entropy, portable application APIs, and
+allocation-controlled embedded APIs. This repository includes two independent
+consumers: a secure host CLI and the Strong Password Generator firmware for
+FoloToy AI Passport.
+
+The firmware is a reference application of the MoonBit package, not the package
+boundary itself. Consumers can import `moonbit/securegen` without ESP-IDF,
+FoloToy, LVGL, BLE, a filesystem, or network access.
+
+For a short evaluation path, see the
+[reviewer guide](docs/competition/REVIEW_GUIDE.md), then run:
+
+```bash
+moon -C moonbit test -p folotoy/strong-password-generator-ai-passport/securegen \
+  --target wasm-gc --release --deny-warn
+moon -C moonbit run examples/cli --target js --release -- --profile strict --length 24
+```
+
+## FoloToy reference application
 
 The firmware starts directly in the generator. It does not connect to a network, store password history, or redefine the system power button. A generated value leaves the device only after the user explicitly selects **Send**, through the paired encrypted BLE HID keyboard connection.
 
-## Features
+The embedded application is an offline three-button password generator built
+for FoloToy AI Passport. It starts directly in the generator, does not connect
+to a network or store password history, and sends a generated value only after
+the user explicitly selects **Send** over an encrypted BLE HID connection.
+
+### Firmware features
 
 - **Random**: 6–30 printable ASCII characters, default length 10, letters always enabled, optional digits and symbols. Every enabled optional class is guaranteed to appear.
 - **Memorable**: 3–6 offline words, default 4, optional capitalization, complete or four-character abbreviated words, and `-`, `.`, or `_` separators.

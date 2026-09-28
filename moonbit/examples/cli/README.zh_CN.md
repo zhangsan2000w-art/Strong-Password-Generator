@@ -1,5 +1,7 @@
 # SecureGen CLI
 
+[English](README.md) | 简体中文
+
 这是基于可复用 `securegen` 包构建的独立 MoonBit 应用。它通过
 `moonbitlang/core/env` 获取密码学安全随机字节，不依赖 ESP-IDF、FoloToy、
 LVGL、BLE 或设备固件。

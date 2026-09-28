@@ -1,5 +1,7 @@
 # SecureGen CLI
 
+English | [简体中文](README.zh_CN.md)
+
 An independent MoonBit application built on the reusable `securegen` package.
 It obtains cryptographically secure random bytes from `moonbitlang/core/env`
 and does not depend on ESP-IDF, FoloToy, LVGL, BLE, or device firmware.
