@@ -213,10 +213,15 @@ def check_font_configuration(errors: list[str]) -> None:
 
 
 def moonbit_product_lines() -> int:
-    """Count nonblank, non-comment MoonBit product lines, excluding tests."""
+    """Count nonblank, non-comment MoonBit library and firmware lines."""
     count = 0
-    for path in sorted((ROOT / "moonbit").glob("*.mbt")):
-        if path.name.endswith(("_test.mbt", "_wbtest.mbt")):
+    for path in sorted((ROOT / "moonbit").rglob("*.mbt")):
+        relative_parts = path.relative_to(ROOT / "moonbit").parts
+        if (
+            path.name.endswith(("_test.mbt", "_wbtest.mbt"))
+            or "_build" in relative_parts
+            or "examples" in relative_parts
+        ):
             continue
         for line in path.read_text(encoding="utf-8").splitlines():
             stripped = line.strip()

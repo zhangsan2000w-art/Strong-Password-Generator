@@ -12,6 +12,7 @@ import sys
 
 
 PACKAGE = "folotoy/strong-password-generator-ai-passport"
+SECUREGEN_PACKAGE = f"{PACKAGE}/securegen"
 
 
 def moon_home(moonc: Path) -> Path:
@@ -57,8 +58,30 @@ def main() -> int:
         print(f"error: no MoonBit sources found in {source_dir}", file=sys.stderr)
         return 2
 
+    securegen_dir = source_dir / "securegen"
+    securegen_sources = sorted(
+        path for path in securegen_dir.glob("*.mbt")
+        if not path.name.endswith(("_test.mbt", "_wbtest.mbt"))
+    )
+    if not securegen_sources:
+        print(f"error: no reusable MoonBit sources found in {securegen_dir}", file=sys.stderr)
+        return 2
+
     output.parent.mkdir(parents=True, exist_ok=True)
+    securegen_core = output.with_name("securegen.core")
+    securegen_mi = securegen_core.with_suffix(".mi")
     core = output.with_suffix(".core")
+    run([
+        str(moonc), "build-package", *map(str, securegen_sources),
+        "-o", str(securegen_core),
+        "-pkg", SECUREGEN_PACKAGE,
+        "-pkg-type", "library",
+        "-std-path", str(bundle),
+        "-i", f"{bundle / 'prelude' / 'prelude.mi'}:prelude",
+        "-pkg-sources", f"{SECUREGEN_PACKAGE}:{securegen_dir}",
+        "-target", "native",
+        "-workspace-path", str(source_dir),
+    ])
     run([
         str(moonc), "build-package", *map(str, sources),
         "-o", str(core),
@@ -66,7 +89,9 @@ def main() -> int:
         "-pkg-type", "foreign_library",
         "-std-path", str(bundle),
         "-i", f"{bundle / 'prelude' / 'prelude.mi'}:prelude",
+        "-i", f"{securegen_mi}:securegen",
         "-pkg-sources", f"{PACKAGE}:{source_dir}",
+        "-pkg-sources", f"{SECUREGEN_PACKAGE}:{securegen_dir}",
         "-target", "native",
         "-workspace-path", str(source_dir),
     ])
@@ -74,15 +99,20 @@ def main() -> int:
         str(moonc), "link-core",
         str(bundle / "abort" / "abort.core"),
         str(bundle / "core.core"),
+        str(securegen_core),
         str(core),
         "-main", PACKAGE,
         "-o", str(output),
         "-pkg-config-path", str(source_dir / "moon.pkg"),
         "-pkg-sources", f"{PACKAGE}:{source_dir}",
+        "-pkg-sources", f"{SECUREGEN_PACKAGE}:{securegen_dir}",
         "-pkg-sources", f"moonbitlang/core:{home / 'lib' / 'core'}",
         "-target", "native",
     ])
     core.unlink(missing_ok=True)
+    core.with_suffix(".mi").unlink(missing_ok=True)
+    securegen_core.unlink(missing_ok=True)
+    securegen_mi.unlink(missing_ok=True)
     print(f"[moonbit-codegen] generated {output}")
     return 0
 

@@ -11,7 +11,9 @@ AI Passport BSP 按键回调，仅入队
       |
 FreeRTOS 输入任务 + LVGL/硬件适配层（C）
       |
-MoonBit 产品核心：生成、状态、视图、HID 映射、电量、强度、声音
+MoonBit 固件适配包：状态、视图、HID 映射、电量、强度、声音
+      |
+可复用 MoonBit securegen 包：密码、PIN、Passphrase、策略
       |
 C FFI：原始硬件输入与输出
       |
@@ -24,10 +26,11 @@ MoonBit 负责产品规则，C 负责平台边界。MoonBit 核心模块不导�
 
 | 模块 | 职责 |
 | --- | --- |
+| `securegen/api.mbt` | 类型化可复用策略 API、返回 String 的应用 API、可控内存分配的生成 API，以及随机熵注入边界 |
 | `policy.mbt` | 长度边界、字符集和分隔符 |
 | `random_source.mbt` | 基于回调的随机抽象与拒绝采样 |
-| `password.mbt` | Random 密码与 PIN 生成 |
-| `passphrase.mbt` | 词库选择与格式化 |
+| `password.mbt` | 从固件 ABI 到 `securegen` 密码与 PIN 生成的兼容适配器 |
+| `passphrase.mbt` | 从 Flash 词库回调到 `securegen` 的兼容适配器 |
 | `security_policy.mbt` | ASCII 字符分类与生成结果后置校验 |
 | `entropy.mbt` | 面向显示的熵估算 |
 | `strength.mbt` | 配置有效性与密码强度分级 |
@@ -41,11 +44,13 @@ MoonBit 负责产品规则，C 负责平台边界。MoonBit 核心模块不导�
 
 应用状态压缩在一个 `UInt64` 中，C 适配层将其视为不透明值。状态机处理每次输入前会清除一次性 action 字段，因此停留在生成行时再次按 `OK` 可以有意重新生成。
 
-当前生产 MoonBit 有效代码为 2,713 行（排除测试、空行和注释）；按同一规则另有 1,423 行 MoonBit 测试。仓库静态检查会阻止生产 MoonBit 有效行数回落到 1,000 以下。
+当前生产 MoonBit 有效代码为 3,347 行（排除测试、示例、空行和注释），物理生产代码 4,010 行，另有 2,021 行 MoonBit 测试。仓库静态检查递归扫描所有包，并阻止生产 MoonBit 有效行数回落到 1,000 以下。
 
 ## 平台集成
 
-`tools/generate_moonbit.py` 针对 native 目标调用 `moonc build-package` 和 `moonc link-core`。ESP-IDF 随后编译生成的 C 与仓库内 MoonBit runtime。测试文件和主机 stub 不会进入固件代码生成。
+`tools/generate_moonbit.py` 分别对平台无关的 `securegen` 库和 Native 固件适配包调用 `moonc build-package`，再把两份 core 链接成可移植 C。ESP-IDF 随后编译生成的 C 与仓库内 MoonBit runtime。测试文件、CLI 应用和主机 stub 不会进入固件代码生成。
+
+`moonbit/examples/cli` 直接导入 `securegen` 并在 WasmGC 上运行，是用于验证公共包边界的独立消费者；其中的确定性随机回调只用于演示。固件是第二个消费者，并通过 C FFI 注入硬件随机熵。
 
 FFI 表面只包含整数、不透明 64 位状态、一个 `UInt` 随机回调、字符输出及词库查询。视图、电量和声音也通过整数型纯函数导出，避免把 LVGL、I2C 或 ES8311 类型带入 MoonBit。未来更换板卡时，可以只替换这些硬件调用，无需重写产品策略。
 

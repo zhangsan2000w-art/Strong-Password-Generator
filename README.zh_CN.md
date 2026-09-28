@@ -17,6 +17,21 @@
 - **显示**：可切换的 240×320 赛博朋克与蓝天白云主题；中文采用 17px、4bpp、强提示字体子集；MoonBit 视图模型决定参数槽位、焦点、布局、主题与设置状态、强度颜色及电量显示策略。
 - **核心**：生成策略、无偏随机索引、输出后置校验、熵与强度、应用状态、设置输入策略、视图模型、电池策略和声音合成都由 MoonBit 实现。
 
+## 可复用引擎与应用
+
+项目现在以库为核心划分边界，不再只把生成能力作为固件内部实现：
+
+- [`moonbit/securegen`](moonbit/securegen/README.zh_CN.md) 是与平台无关的 MoonBit
+  包，提供类型化 `PasswordPolicy`、返回 String 的应用 API、可控内存分配的嵌入式
+  API，以及由调用方注入的随机源。
+- [`moonbit/examples/cli`](moonbit/examples/cli/main.mbt) 是在 WasmGC 上消费该包的
+  独立 MoonBit 应用；其中的确定性随机源明确只用于演示。
+- AI Passport 固件是第二个真实应用。它的稳定 C ABI 现在把密码、PIN 和 Passphrase
+  生成委托给 `securegen`，C 继续负责硬件随机熵与设备 I/O。
+
+这样，Native、Wasm、浏览器、命令行和嵌入式消费者可以共享同一引擎，而不依赖
+ESP-IDF、LVGL、BLE 或 FoloToy 代码。
+
 ## 设置与持久化
 
 - 主界面未处于编辑状态时，长按 `OK` 在赛博朋克与蓝天白云主题之间切换；长按 `DOWN` 进入设置页。
@@ -28,7 +43,7 @@
 
 ## MoonBit 主体实现
 
-当前仓库有 2,804 行生产 `.mbt` 与 1,255 行 MoonBit 测试，共 4,059 行。排除测试、空行和注释后，生产 MoonBit 有效代码为 2,397 行。`tools/check_repo.py` 会独立检查生产实现不少于 1,000 有效行，测试代码不能用于凑这个门槛。
+当前仓库有 4,010 行生产 `.mbt` 与 2,021 行 MoonBit 测试，共 6,031 行。排除测试、示例、空行和注释后，生产 MoonBit 有效代码为 3,347 行。`tools/check_repo.py` 会递归扫描所有包，并独立检查生产实现不少于 1,000 有效行；测试与示例不能用于凑这个门槛。
 
 MoonBit 生产模块直接进入 ESP-IDF 构建，并被固件调用：
 
@@ -59,7 +74,7 @@ C 只保留 ESP-IDF/BSP 初始化、LVGL 控件绘制、I2C 原始读数、FreeR
 - 支持 native/C 后端的 MoonBit，`moon` 与 `moonc` 位于 `PATH`
 - Python 3
 
-本次验证环境使用 `moon 0.1.20260904` 和 `moonc v0.10.12+1634b282e`。ESP-IDF 构建会调用 [`tools/generate_moonbit.py`](tools/generate_moonbit.py)，将 MoonBit 包编译为可移植 C，再链接到 `moonbit_password` ESP-IDF 组件。生成的 C 是构建产物，不进入 Git。
+本次验证环境使用 `moon 0.1.20260904` 和 `moonc v0.10.12+1634b282e`。ESP-IDF 构建会调用 [`tools/generate_moonbit.py`](tools/generate_moonbit.py)，把可复用 `securegen` 包和固件适配包分别编译为可移植 C，再链接到 `moonbit_password` ESP-IDF 组件。生成的 C 是构建产物，不进入 Git。
 
 GitHub Actions 安装 MoonBit 的 `latest` 稳定通道，因为官方 CDN 不保证带日期的 CLI 历史包长期可下载。每次 CI 日志打印的实际工具版本即为该次验证记录；上面的版本仍是本地已经验证的开发快照。
 
@@ -76,6 +91,14 @@ GitHub Actions 安装 MoonBit 的 `latest` 稳定通道，因为官方 CDN 不�
 ```bash
 MOONBIT_NEW_NATIVE=0 moon -C moonbit check --target native --deny-warn
 MOONBIT_NEW_NATIVE=0 moon -C moonbit test --target native --release
+```
+
+可复用包还提供不依赖固件后端的 WasmGC 门禁：
+
+```bash
+moon -C moonbit test -p folotoy/strong-password-generator-ai-passport/securegen \
+  --target wasm-gc --release --deny-warn
+moon -C moonbit run examples/cli --target wasm-gc --release
 ```
 
 确定性随机源只用于主机测试。固件随机数始终通过 C FFI 进入 ESP32 适配器。

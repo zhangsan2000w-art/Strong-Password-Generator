@@ -20,6 +20,7 @@ set(MOONBIT_SOURCES
     "${MOONBIT_SOURCE_DIR}/random_source.mbt"
     "${MOONBIT_SOURCE_DIR}/security_policy.mbt"
     "${MOONBIT_SOURCE_DIR}/security_warning.mbt"
+    "${MOONBIT_SOURCE_DIR}/securegen/api.mbt"
     "${MOONBIT_SOURCE_DIR}/settings.mbt"
     "${MOONBIT_SOURCE_DIR}/sound.mbt"
     "${MOONBIT_SOURCE_DIR}/state.mbt"
@@ -37,6 +38,7 @@ add_custom_command(
             --output "${GENERATED_MOONBIT_C}"
     DEPENDS ${MOONBIT_SOURCES}
             "${MOONBIT_SOURCE_DIR}/moon.pkg"
+            "${MOONBIT_SOURCE_DIR}/securegen/moon.pkg"
             "${PROJECT_ROOT}/tools/generate_moonbit.py"
     VERBATIM
     COMMENT "Generating C from MoonBit password core"

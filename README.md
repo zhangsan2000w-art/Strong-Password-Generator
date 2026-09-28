@@ -17,6 +17,24 @@ The firmware starts directly in the generator. It does not connect to a network,
 - **Display**: switchable 240×320 cyberpunk and blue-sky themes with a 17px, 4bpp, strongly hinted CJK subset. MoonBit view models own parameter slots, focus, layout, theme and settings state, strength color, and battery presentation policy.
 - **Core**: generation, unbiased indexes, output postconditions, entropy and strength, state transitions, settings input policy, view models, battery policy, and sound synthesis are implemented in MoonBit.
 
+## Reusable engine and applications
+
+The project now has a library-first boundary instead of exposing generation
+only as firmware internals:
+
+- [`moonbit/securegen`](moonbit/securegen/README.md) is a platform-neutral
+  MoonBit package with typed `PasswordPolicy`, String-returning application
+  APIs, allocation-controlled embedded APIs, and an injected random source.
+- [`moonbit/examples/cli`](moonbit/examples/cli/main.mbt) is an independent
+  MoonBit application consuming the package on WasmGC. Its deterministic
+  source is explicitly demonstration-only.
+- The AI Passport firmware is a second, real application. Its stable C ABI now
+  delegates password, PIN, and passphrase generation to `securegen` while C
+  continues to provide hardware entropy and device I/O.
+
+This separation lets Native, Wasm, browser, command-line, and embedded consumers
+share the same engine without depending on ESP-IDF, LVGL, BLE, or FoloToy code.
+
 ## Settings and persistence
 
 - Long-press `OK` on the main screen while not editing to switch between cyberpunk and blue-sky themes. Long-press `DOWN` to open Settings.
@@ -28,7 +46,7 @@ The firmware starts directly in the generator. It does not connect to a network,
 
 ## MoonBit-first implementation
 
-The repository now contains 2,804 production `.mbt` lines and 1,255 MoonBit test lines, 4,059 in total. Excluding tests, blank lines, and comments leaves 2,397 effective production MoonBit lines. `tools/check_repo.py` independently enforces at least 1,000 effective production lines; tests cannot satisfy that gate.
+The repository now contains 4,010 production `.mbt` lines and 2,021 MoonBit test lines, 6,031 in total. Excluding tests, examples, blank lines, and comments leaves 3,347 effective production MoonBit lines. `tools/check_repo.py` scans packages recursively and independently enforces at least 1,000 effective production lines; tests and examples cannot satisfy that gate.
 
 The production MoonBit modules are compiled into and called by the ESP-IDF firmware. They own:
 
@@ -59,7 +77,7 @@ This repository adds the MoonBit-based password generator, product logic, intera
 - MoonBit with the native/C backend (`moon` and `moonc` on `PATH`)
 - Python 3
 
-The verified development snapshot used `moon 0.1.20260904` and `moonc v0.10.12+1634b282e`. The ESP-IDF build invokes [`tools/generate_moonbit.py`](tools/generate_moonbit.py), which compiles the MoonBit package to portable C and links it into the `moonbit_password` ESP-IDF component. Generated C is a build artifact and is not committed.
+The verified development snapshot used `moon 0.1.20260904` and `moonc v0.10.12+1634b282e`. The ESP-IDF build invokes [`tools/generate_moonbit.py`](tools/generate_moonbit.py), which compiles the reusable `securegen` package and the firmware adapter package to portable C, then links them into the `moonbit_password` ESP-IDF component. Generated C is a build artifact and is not committed.
 
 GitHub Actions installs MoonBit's `latest` stable channel because dated CLI bundles are not guaranteed to remain downloadable from the official CDN. The exact tool versions printed by each CI run are therefore part of that run's verification record; the version above remains the locally verified snapshot.
 
@@ -76,6 +94,14 @@ Run the MoonBit core directly:
 ```bash
 MOONBIT_NEW_NATIVE=0 moon -C moonbit check --target native --deny-warn
 MOONBIT_NEW_NATIVE=0 moon -C moonbit test --target native --release
+```
+
+The reusable package also has a backend-independent gate that runs on WasmGC:
+
+```bash
+moon -C moonbit test -p folotoy/strong-password-generator-ai-passport/securegen \
+  --target wasm-gc --release --deny-warn
+moon -C moonbit run examples/cli --target wasm-gc --release
 ```
 
 The deterministic test source is used only by host tests. Firmware randomness always crosses the C FFI boundary into the ESP32 adapter.

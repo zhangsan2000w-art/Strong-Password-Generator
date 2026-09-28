@@ -6,6 +6,6 @@ license = "MIT"
 
 preferred_target = "native"
 
-supported_targets = "native"
+supported_targets = "all"
 
-description = "MoonBit core for Strong Password Generator_AI Passport"
+description = "Reusable MoonBit credential generation engine with CLI and embedded applications"

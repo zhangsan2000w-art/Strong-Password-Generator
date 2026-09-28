@@ -30,6 +30,10 @@ run_static_checks() {
         return 1
     fi
     MOONBIT_NEW_NATIVE=0 moon -C moonbit check --target native --deny-warn
+    moon -C moonbit test \
+        -p folotoy/strong-password-generator-ai-passport/securegen \
+        --target wasm-gc --release --deny-warn
+    moon -C moonbit run examples/cli --target wasm-gc --release >/dev/null
     MOONBIT_NEW_NATIVE=0 moon -C moonbit test --target native --release
 
     actionlint_bin="${ACTIONLINT_BIN:-}"

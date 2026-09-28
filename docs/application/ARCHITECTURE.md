@@ -11,7 +11,9 @@ AI Passport BSP button callback -- queue only
       |
 FreeRTOS input task + LVGL/hardware adapter (C)
       |
-MoonBit product core: generation, state, view, HID mapping, battery, strength, sound
+MoonBit firmware adapter: state, view, HID mapping, battery, strength, sound
+      |
+Reusable MoonBit securegen package: password, PIN, passphrase, policy
       |
 C FFI: raw hardware input and output
       |
@@ -24,10 +26,11 @@ MoonBit owns the product rules. C owns the platform boundary. No MoonBit core mo
 
 | Module | Responsibility |
 | --- | --- |
+| `securegen/api.mbt` | Typed reusable policy API, String-returning application API, allocation-controlled generation, injected entropy boundary |
 | `policy.mbt` | Length bounds, character sets, separators |
 | `random_source.mbt` | Callback-based random abstraction and rejection sampling |
-| `password.mbt` | Random password and PIN generation |
-| `passphrase.mbt` | Dictionary selection and formatting |
+| `password.mbt` | Compatibility adapter from the firmware ABI to `securegen` password and PIN generation |
+| `passphrase.mbt` | Compatibility adapter from Flash dictionary callbacks to `securegen` |
 | `security_policy.mbt` | ASCII classification and generated-output postconditions |
 | `entropy.mbt` | Display-oriented entropy estimates |
 | `strength.mbt` | Configuration validity and strength classification |
@@ -41,11 +44,13 @@ MoonBit owns the product rules. C owns the platform boundary. No MoonBit core mo
 
 The state is packed into a `UInt64` so the C adapter treats it as an opaque value. State transitions clear the one-shot action field before processing each input. A generation action can therefore be repeated intentionally by pressing `OK` again on the generate row.
 
-There are 2,713 effective production MoonBit lines (tests, blanks, and comments excluded) plus 1,423 MoonBit test lines counted by the same rule. Repository checks prevent effective production MoonBit from dropping below 1,000 lines.
+There are 3,347 effective production MoonBit lines (tests, examples, blanks, and comments excluded), 4,010 physical production lines, and 2,021 MoonBit test lines. Repository checks scan packages recursively and prevent effective production MoonBit from dropping below 1,000 lines.
 
 ## Platform integration
 
-`tools/generate_moonbit.py` invokes `moonc build-package` and `moonc link-core` for the native target. ESP-IDF compiles the resulting C with the vendored MoonBit runtime. Test files and host stubs are excluded from firmware code generation.
+`tools/generate_moonbit.py` invokes `moonc build-package` separately for the platform-neutral `securegen` library and the Native firmware adapter, then links both cores to portable C. ESP-IDF compiles the resulting C with the vendored MoonBit runtime. Test files, the CLI application, and host stubs are excluded from firmware code generation.
+
+`moonbit/examples/cli` imports `securegen` directly and runs on WasmGC. It is an independent consumer used to verify the public package boundary; its deterministic random callback is demonstration-only. The firmware is a second consumer and injects hardware entropy through C FFI.
 
 The FFI surface contains only integer values, an opaque 64-bit state, one `UInt` random callback, character output, and dictionary lookup. View, battery, and sound functions also export primitive integers, keeping LVGL, I2C, and ES8311 types outside MoonBit. The application can move to another board by replacing hardware calls without rewriting product policy.
 

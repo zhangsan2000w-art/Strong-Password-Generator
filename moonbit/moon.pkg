@@ -1,10 +1,16 @@
 pkgtype(kind: "foreign_library")
 
+supported_targets = "native"
+
 warnings = "-test_unqualified_package"
 
 import {
   "moonbitlang/core/test",
 } for "test"
+
+import {
+  "folotoy/strong-password-generator-ai-passport/securegen",
+}
 
 options(
   "native-stub": [ "host_stubs.c" ],

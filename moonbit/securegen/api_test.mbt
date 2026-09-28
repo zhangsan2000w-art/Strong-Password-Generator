@@ -1,0 +1,128 @@
+///|
+struct Sequence {
+  values : Array[UInt]
+  mut index : Int
+}
+
+///|
+fn Sequence::new(values : Array[UInt]) -> Sequence {
+  { values, index: 0, }
+}
+
+///|
+fn Sequence::next(self : Sequence) -> UInt {
+  let value = self.values[self.index % self.values.length()]
+  self.index = self.index + 1
+  value
+}
+
+///|
+test "standard policy produces a reusable String result" {
+  let source = Sequence::new([1U, 9U, 17U, 25U, 33U, 41U, 49U, 57U])
+  match generate_password(PasswordPolicy::standard(), fn() { source.next() }) {
+    Ok(value) => @test.assert_eq(value.length(), 16)
+    Err(message) => @test.fail(message)
+  }
+}
+
+///|
+test "standard policy guarantees every enabled character class" {
+  let source = Sequence::new([1U, 9U, 17U, 25U, 33U, 41U, 49U, 57U])
+  match generate_password(PasswordPolicy::standard(), fn() { source.next() }) {
+    Ok(value) => {
+      let mut lower = false
+      let mut upper = false
+      let mut digit = false
+      let mut symbol = false
+      for ch in value {
+        let code = ch.to_int()
+        if code >= 97 && code <= 122 {
+          lower = true
+        }
+        if code >= 65 && code <= 90 {
+          upper = true
+        }
+        if code >= 48 && code <= 57 {
+          digit = true
+        }
+        if !(code >= 97 && code <= 122) &&
+          !(code >= 65 && code <= 90) &&
+          !(code >= 48 && code <= 57) {
+          symbol = true
+        }
+        @test.assert_eq(
+          code == 48 || code == 79 || code == 49 || code == 73 || code == 108,
+          false,
+        )
+      }
+      @test.assert_eq(lower && upper && digit && symbol, true)
+    }
+    Err(message) => @test.fail(message)
+  }
+}
+
+///|
+test "typed API rejects an invalid policy" {
+  let policy = PasswordPolicy::new(
+    3,
+    lowercase=true,
+    uppercase=true,
+    digits=true,
+    symbols=true,
+  )
+  @test.assert_eq(policy.is_valid(), false)
+  match generate_password(policy, fn() { 1U }) {
+    Ok(_) => @test.fail("invalid policy unexpectedly generated output")
+    Err(message) => @test.assert_eq(message, "invalid password policy")
+  }
+}
+
+///|
+test "PIN API returns a String for application consumers" {
+  let source = Sequence::new([0U, 1U, 2U, 3U, 4U, 5U])
+  match generate_pin(6, fn() { source.next() }) {
+    Ok(value) => @test.assert_eq(value, "012345")
+    Err(message) => @test.fail(message)
+  }
+}
+
+///|
+test "allocation-controlled API reports a rejected sink" {
+  @test.assert_eq(
+    generate_password_into(PasswordPolicy::standard(), fn() { 7U }, fn(_) {
+      false
+    }),
+    -2,
+  )
+}
+
+///|
+test "unbiased index redraws samples from the incomplete bucket" {
+  let source = Sequence::new([0xffffffffU, 7U])
+  @test.assert_eq(unbiased_index(fn() { source.next() }, 10), 7)
+  @test.assert_eq(unbiased_index(fn() { source.next() }, 1), 0)
+  @test.assert_eq(unbiased_index(fn() { source.next() }, 0), -1)
+}
+
+///|
+test "callback dictionary keeps passphrases independent of storage" {
+  let words = ["apple", "baker"]
+  let builder = StringBuilder()
+  let source = Sequence::new([0U])
+  let result = generate_passphrase_into(
+    fn() { source.next() },
+    fn(code) {
+      builder.write_char(code.to_char().unwrap())
+      true
+    },
+    words.length(),
+    fn(index) { words[index].length() },
+    fn(index, offset) { words[index].get_char(offset).unwrap().to_int() },
+    3,
+    false,
+    true,
+    0,
+  )
+  @test.assert_eq(result, 0)
+  @test.assert_eq(builder.to_string(), "apple-apple-apple")
+}
