@@ -4,9 +4,8 @@ English | [简体中文](README.zh_CN.md)
 
 **SecureGen** is a reusable MoonBit credential-generation engine with typed
 policies, caller-injected entropy, portable application APIs, and
-allocation-controlled embedded APIs. This repository includes two independent
-consumers: a secure host CLI and the Strong Password Generator firmware for
-FoloToy AI Passport.
+allocation-controlled embedded APIs. This repository includes independent CLI,
+browser, external-module, and FoloToy firmware consumers.
 
 The firmware is a reference application of the MoonBit package, not the package
 boundary itself. Consumers can import `zhangsan2000w-art/moonbit-securegen`
@@ -56,6 +55,10 @@ only as firmware internals:
   `moonbitlang/core/env`; it supports profiles, custom lengths, PINs, and batch output.
 - [`examples/consumer`](examples/consumer/README.md) is a separate MoonBit
   module with a versioned dependency on the root library and cross-module tests.
+- [`src/cmd/web`](src/cmd/web/main.mbt) and
+  [`examples/web`](examples/web/README.md) form a browser consumer: MoonBit owns
+  the credential workflow while the adapter supplies DOM access and browser
+  cryptographic randomness.
 - The AI Passport firmware is a second, real application. Its stable C ABI now
   delegates password, PIN, and passphrase generation to `securegen` while C
   continues to provide hardware entropy and device I/O.
@@ -130,6 +133,7 @@ The reusable package also has a backend-independent gate that runs on WasmGC:
 ```bash
 moon test -p zhangsan2000w-art/moonbit-securegen \
   --target wasm-gc --release --deny-warn
+moon -C examples/consumer test --target js --release --deny-warn
 moon run src/cmd/securegen --target js --release -- --profile strict --length 24
 ```
 
@@ -187,8 +191,10 @@ Flashing the merged image at `0x0` can reset the NVS region. After initial provi
 - The subset uses LVGL's compressed font format, so `examples/folotoy-ai-passport/sdkconfig.defaults` enables `CONFIG_LV_USE_FONT_COMPRESSED=y`. If panels and the generated password render but title, mode, and button labels are blank, rebuild from clean defaults and confirm this option is present in the generated `sdkconfig`.
 - The vendored MoonBit runtime files retain their Apache-2.0 notice in [`examples/folotoy-ai-passport/components/moonbit_password/RUNTIME_LICENSE.txt`](examples/folotoy-ai-passport/components/moonbit_password/RUNTIME_LICENSE.txt). Project-authored code remains under the repository MIT license.
 
-## Design and security
+## API, versioning, design, and security
 
+- [Public API guide](docs/api/README.md)
+- [Semantic versioning and Mooncakes release contract](docs/api/VERSIONING.md)
 - [Architecture and decision record](docs/application/ARCHITECTURE.md)
 - [Security model and limitations](docs/application/SECURITY.md)
 - [AI usage disclosure](docs/application/AI_USAGE.md)

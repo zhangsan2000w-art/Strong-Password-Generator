@@ -34,9 +34,33 @@ run_static_checks() {
     moon test \
         -p zhangsan2000w-art/moonbit-securegen \
         --target wasm-gc --release --deny-warn
+    moon test \
+        -p zhangsan2000w-art/moonbit-securegen \
+        --target js --release --deny-warn
     moon -C examples/consumer test --target wasm-gc --release --deny-warn
+    moon -C examples/consumer test --target js --release --deny-warn
+    moon test \
+        -p zhangsan2000w-art/moonbit-securegen/cmd/securegen \
+        --target js --release --deny-warn
     moon run src/cmd/securegen \
         --target js --release -- --profile strict --length 24 >/dev/null
+    moon test \
+        -p zhangsan2000w-art/moonbit-securegen/cmd/web \
+        --target js --release --deny-warn
+    moon build --target js --release --deny-warn
+    if ! command -v node >/dev/null 2>&1; then
+        echo "ERROR: Node.js is required for the browser-consumer smoke test." >&2
+        return 1
+    fi
+    node examples/web/smoke.mjs
+    local package_files
+    package_files="$(moon package --list)"
+    if printf '%s\n' "${package_files}" \
+        | grep -Eq '^(\.github|build|build-|examples[\\/]folotoy-ai-passport|tests|tools)[\\/]'; then
+        echo "ERROR: publish package contains repository or firmware-only files." >&2
+        printf '%s\n' "${package_files}" >&2
+        return 1
+    fi
     MOONBIT_NEW_NATIVE=0 moon -C "${firmware_root}/moonbit" test --target native --release
 
     actionlint_bin="${ACTIONLINT_BIN:-}"

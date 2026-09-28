@@ -23,7 +23,10 @@
 
 1. `src/cmd/securegen` 是独立宿主应用，通过 `moonbitlang/core/env` 获取密码学
    随机熵，支持选择策略、自定义长度、PIN 和批量生成。
-2. `examples/folotoy-ai-passport/moonbit` 是 FoloToy 固件适配器，保留设备 C ABI，但把密码、PIN 和
+2. `src/cmd/web` 与 `examples/web` 构成浏览器消费者；DOM 与安全随机数绑定属于
+   目标适配层，凭据逻辑仍留在核心库。
+3. `examples/consumer` 是声明版本化库依赖的独立模块，只通过公开 API 做跨包测试。
+4. `examples/folotoy-ai-passport/moonbit` 是 FoloToy 固件适配器，保留设备 C ABI，但把密码、PIN 和
    Passphrase 生成委托给 `securegen`。
 
 CLI 不导入固件适配包，可移植包也不导入任何一个应用。
@@ -37,6 +40,11 @@ moon test -p zhangsan2000w-art/moonbit-securegen \
   --target wasm-gc --release --deny-warn
 moon test -p zhangsan2000w-art/moonbit-securegen/cmd/securegen \
   --target js --release --deny-warn
+moon -C examples/consumer test --target wasm-gc --release --deny-warn
+moon test -p zhangsan2000w-art/moonbit-securegen/cmd/web \
+  --target js --release --deny-warn
+moon build --target js --release --deny-warn
+node examples/web/smoke.mjs
 moon run src/cmd/securegen --target js --release -- \
   --profile strict --length 24 --count 3
 python tools/check_repo.py

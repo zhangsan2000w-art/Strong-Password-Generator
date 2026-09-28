@@ -44,6 +44,12 @@ packages.
   independent MoonBit consumer that obtains
   cryptographically secure entropy through `moonbitlang/core/env`. It supports
   password profiles, custom lengths, PINs, and multiple generated values.
+- [`../../src/cmd/web`](../../src/cmd/web/main.mbt) is a JavaScript-target
+  MoonBit browser adapter. The matching
+  [`../../examples/web`](../../examples/web/README.md) page exercises password,
+  PIN, and passphrase flows without copying generation logic into JavaScript.
+- [`../../examples/consumer`](../../examples/consumer/README.md) is a separate
+  module with a versioned dependency and cross-package integration tests.
 - The `examples/folotoy-ai-passport/moonbit` workspace member is a Native
   foreign-library adapter used
   by the FoloToy AI Passport firmware. Its existing C ABI delegates generation
@@ -66,3 +72,6 @@ the FoloToy application injects its platform RNG through the C FFI boundary.
 Entropy functions estimate a policy's search space; they do not measure runtime
 randomness, password reuse, online rate limits, or resistance to user-chosen
 patterns.
+
+See [Versioning and Mooncakes releases](VERSIONING.md) for the compatibility
+contract and release checklist.

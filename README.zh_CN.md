@@ -3,8 +3,8 @@
 [English](README.md) | 简体中文
 
 **SecureGen** 是一个可复用的 MoonBit 凭据生成引擎，提供类型化策略、调用方注入
-随机熵、可移植应用 API 和可控内存分配的嵌入式 API。本仓库包含两个相互独立的消费
-端：使用宿主安全随机源的 CLI，以及运行在 FoloToy AI Passport 上的强密码生成固件。
+随机熵、可移植应用 API 和可控内存分配的嵌入式 API。本仓库包含彼此独立的 CLI、
+浏览器、外部模块及 FoloToy 固件消费者。
 
 固件是 MoonBit 包的参考应用，不是这个项目的库边界。其他项目可以直接导入
 `zhangsan2000w-art/moonbit-securegen`，而不依赖 ESP-IDF、FoloToy、LVGL、BLE、
@@ -15,6 +15,7 @@
 ```bash
 moon test -p zhangsan2000w-art/moonbit-securegen \
   --target wasm-gc --release --deny-warn
+moon -C examples/consumer test --target js --release --deny-warn
 moon run src/cmd/securegen --target js --release -- --profile strict --length 24
 ```
 
@@ -49,6 +50,9 @@ moon run src/cmd/securegen --target js --release -- --profile strict --length 24
   PIN 和批量生成。
 - [`examples/consumer`](examples/consumer/README.zh_CN.md) 是通过版本化依赖消费根库的
   独立 MoonBit 模块，并提供跨模块集成测试。
+- [`src/cmd/web`](src/cmd/web/main.mbt) 与
+  [`examples/web`](examples/web/README.zh_CN.md) 组成浏览器消费者：MoonBit
+  负责凭据流程，适配层只提供 DOM 与浏览器密码学随机数。
 - AI Passport 固件是第二个真实应用。它的稳定 C ABI 现在把密码、PIN 和 Passphrase
   生成委托给 `securegen`，C 继续负责硬件随机熵与设备 I/O。
 
@@ -179,8 +183,10 @@ python -m esptool --chip esp32c3 --baud 460800 \
 - 字形子集使用 LVGL 压缩字体格式，因此 `examples/folotoy-ai-passport/sdkconfig.defaults` 启用 `CONFIG_LV_USE_FONT_COMPRESSED=y`。如果面板和生成结果正常，但标题、模式与按钮文字为空白，请按默认配置重新构建，并确认生成的 `sdkconfig` 包含该选项。
 - 随固件编译的 MoonBit runtime 文件保留 Apache-2.0 声明，见 [`examples/folotoy-ai-passport/components/moonbit_password/RUNTIME_LICENSE.txt`](examples/folotoy-ai-passport/components/moonbit_password/RUNTIME_LICENSE.txt)。项目自有代码沿用仓库 MIT License。
 
-## 设计与安全
+## API、版本、设计与安全
 
+- [公开 API 指南](docs/api/README.zh_CN.md)
+- [语义化版本与 Mooncakes 发布约定](docs/api/VERSIONING.zh_CN.md)
 - [架构与决策记录](docs/application/ARCHITECTURE.zh_CN.md)
 - [安全模型与限制](docs/application/SECURITY.zh_CN.md)
 - [AI 使用说明](docs/application/AI_USAGE.zh_CN.md)

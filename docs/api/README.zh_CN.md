@@ -39,6 +39,12 @@ match @securegen.generate_password_with_source(policy, random) {
 - [`../../src/cmd/securegen`](../../src/cmd/securegen/main.mbt) 是独立的
   MoonBit 消费者，通过 `moonbitlang/core/env`
   获取密码学安全随机源，支持密码策略、自定义长度、PIN 和批量生成。
+- [`../../src/cmd/web`](../../src/cmd/web/main.mbt) 是 JavaScript 目标的
+  MoonBit 浏览器适配器；对应的
+  [`../../examples/web`](../../examples/web/README.zh_CN.md) 页面覆盖密码、PIN
+  与口令流程，没有把生成逻辑复制到 JavaScript。
+- [`../../examples/consumer`](../../examples/consumer/README.zh_CN.md) 是声明
+  版本化依赖的独立模块，并提供跨包集成测试。
 - `examples/folotoy-ai-passport/moonbit` workspace 成员是供 FoloToy AI Passport
   固件使用的 Native foreign-library
   适配器；现有 C ABI 已把生成工作委托给 `securegen`。
@@ -57,3 +63,5 @@ moon run src/cmd/securegen --target js --release -- --profile strict --length 24
 随机源。CLI 使用宿主环境提供的密码学随机源；FoloToy 应用通过 C FFI 注入平台随机源。
 熵函数估算的是策略搜索空间，不会测量运行时随机质量、密码复用、在线限速或用户自选
 模式的抵抗能力。
+
+兼容性约定与发布清单见[版本约定与 Mooncakes 发布](VERSIONING.zh_CN.md)。

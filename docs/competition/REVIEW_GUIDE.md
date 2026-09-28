@@ -28,7 +28,11 @@ cryptographic source while tests can use deterministic sequences.
 1. `src/cmd/securegen` is an independent host application. It uses
    `moonbitlang/core/env` cryptographic entropy and supports policy selection,
    custom lengths, PIN output, and batch generation.
-2. `examples/folotoy-ai-passport/moonbit` is the FoloToy firmware adapter. It
+2. `src/cmd/web` plus `examples/web` is a browser consumer whose DOM and secure
+   random bindings are target adapters; credential logic stays in the library.
+3. `examples/consumer` is a separate module declaring a versioned library
+   dependency and exercising only the public API.
+4. `examples/folotoy-ai-passport/moonbit` is the FoloToy firmware adapter. It
    preserves the device C ABI but delegates password, PIN, and passphrase
    generation to `securegen`.
 
@@ -44,6 +48,11 @@ moon test -p zhangsan2000w-art/moonbit-securegen \
   --target wasm-gc --release --deny-warn
 moon test -p zhangsan2000w-art/moonbit-securegen/cmd/securegen \
   --target js --release --deny-warn
+moon -C examples/consumer test --target wasm-gc --release --deny-warn
+moon test -p zhangsan2000w-art/moonbit-securegen/cmd/web \
+  --target js --release --deny-warn
+moon build --target js --release --deny-warn
+node examples/web/smoke.mjs
 moon run src/cmd/securegen --target js --release -- \
   --profile strict --length 24 --count 3
 python tools/check_repo.py
