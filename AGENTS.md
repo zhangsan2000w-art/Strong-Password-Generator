@@ -14,11 +14,11 @@ This file is the only mandatory entry point for AI-assisted work in this reposit
   may deliberately change this layout; validate the resulting table and do not
   turn product-specific partitions into mandatory template contracts.
 - Preserve existing user changes. Start with `git status --short --branch`; never overwrite or clean unrelated files.
-- Hardware facts follow this priority: product specifications and measured results → `components/bsp/include/bsp_pins.h` → BSP headers and implementation → hardware guide → README/demo code. If a task requires a hardware detail not defined by these sources, ask the user instead of guessing.
+- Hardware facts follow this priority: product specifications and measured results → `components/bsp/include/bsp_pins.h` → BSP headers and implementation → hardware guide → README and existing page code. If a task requires a hardware detail not defined by these sources, ask the user instead of guessing.
 - Reusable board logic belongs in `components/bsp`; pages, state machines, animations, and application tasks belong in `main`.
 - LVGL is not thread-safe. Code outside the LVGL task must hold `bsp_lvgl_lock()` while accessing LVGL objects.
 - Button callbacks must stay non-blocking. Audio, storage, networking, and other slow operations belong in worker tasks.
-- A demo must stop every task, timer, callback, and event handler that can access its UI before deleting the screen.
+- A screen must stop every task, timer, callback, and event handler that can access its UI before deleting it.
 - Keep testable state machines, protocols, timing, and layout calculations independent from ESP-IDF/LVGL and cover them with host tests.
 - Never commit credentials, device QR secrets, private keys, personal data, or unsanitized logs.
 - Every maintained Markdown document uses English at its default `.md` path and Simplified Chinese in a paired `.zh_CN.md` file. Keep both versions aligned and retain reciprocal language links.
@@ -30,7 +30,7 @@ This file is the only mandatory entry point for AI-assisted work in this reposit
 | Any code change | `docs/development/ai-guide.md`, relevant headers and neighboring implementation |
 | Environment bootstrap or missing toolchain | `docs/development/engineering/environment-setup.md` |
 | BSP, pins, buses, display, audio, battery | `docs/hardware-design/AI_HARDWARE_DEVELOPMENT_GUIDE.md`, `components/bsp/include/bsp_pins.h` |
-| Demo or menu | `main/demo.h`, `main/main.c`, the nearest `main/demo_*.c` implementation |
+| Product screen or menu | `main/password_app.c`, `main/settings_screen.c`, and the shared `main/ui_pixel.c` theme |
 | Build, test, dependencies, partitions | `docs/development/engineering/build-and-test.md`, `docs/development/engineering/firmware-layout.md`, `sdkconfig.defaults`, `partitions.csv` |
 | CI or release | the matching file in `docs/development/ci/CI-*.md` and `.github/workflows/` |
 | Project completion | `docs/development/release/project-completion.md` (then the `issue-suggestions` or `experience-pr` skill) |
