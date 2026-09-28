@@ -47,6 +47,8 @@ moon run src/cmd/securegen --target js --release -- --profile strict --length 24
 - [`src/cmd/securegen`](src/cmd/securegen/main.mbt) 是通过
   `moonbitlang/core/env` 使用宿主密码学随机源的独立 MoonBit 应用，支持策略、长度、
   PIN 和批量生成。
+- [`examples/consumer`](examples/consumer/README.zh_CN.md) 是通过版本化依赖消费根库的
+  独立 MoonBit 模块，并提供跨模块集成测试。
 - AI Passport 固件是第二个真实应用。它的稳定 C ABI 现在把密码、PIN 和 Passphrase
   生成委托给 `securegen`，C 继续负责硬件随机熵与设备 I/O。
 

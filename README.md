@@ -54,6 +54,8 @@ only as firmware internals:
 - [`src/cmd/securegen`](src/cmd/securegen/main.mbt) is an independent
   MoonBit application using host cryptographic entropy through
   `moonbitlang/core/env`; it supports profiles, custom lengths, PINs, and batch output.
+- [`examples/consumer`](examples/consumer/README.md) is a separate MoonBit
+  module with a versioned dependency on the root library and cross-module tests.
 - The AI Passport firmware is a second, real application. Its stable C ABI now
   delegates password, PIN, and passphrase generation to `securegen` while C
   continues to provide hardware entropy and device I/O.

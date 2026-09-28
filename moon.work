@@ -1,4 +1,5 @@
 members = [
   ".",
+  "./examples/consumer",
   "./examples/folotoy-ai-passport/moonbit",
 ]

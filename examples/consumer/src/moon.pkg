@@ -1,0 +1,7 @@
+import {
+  "zhangsan2000w-art/moonbit-securegen" @securegen,
+}
+
+import {
+  "moonbitlang/core/test",
+} for "test"

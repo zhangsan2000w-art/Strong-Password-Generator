@@ -34,6 +34,7 @@ run_static_checks() {
     moon test \
         -p zhangsan2000w-art/moonbit-securegen \
         --target wasm-gc --release --deny-warn
+    moon -C examples/consumer test --target wasm-gc --release --deny-warn
     moon run src/cmd/securegen \
         --target js --release -- --profile strict --length 24 >/dev/null
     MOONBIT_NEW_NATIVE=0 moon -C "${firmware_root}/moonbit" test --target native --release
