@@ -137,3 +137,66 @@ test "callback dictionary keeps passphrases independent of storage" {
   @test.assert_eq(result, 0)
   @test.assert_eq(builder.to_string(), "apple-apple-apple")
 }
+
+///|
+test "typed random source supports password PIN and passphrase APIs" {
+  let source = Sequence::new([0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U])
+  let random = RandomSource::new(fn() { source.next() })
+  match generate_password_with_source(PasswordPolicy::standard(), random) {
+    Ok(value) =>
+      @test.assert_eq(
+        validate_password(PasswordPolicy::standard(), value),
+        true,
+      )
+    Err(message) => @test.fail(message)
+  }
+  match generate_pin_with_source(8, random) {
+    Ok(value) => @test.assert_eq(validate_pin(value), true)
+    Err(message) => @test.fail(message)
+  }
+  match
+    generate_passphrase_with_source(
+      PassphrasePolicy::new(
+        3,
+        capitalize=true,
+        separator=PassphraseSeparator::underscore(),
+      ),
+      ["apple", "baker"],
+      random,
+    ) {
+    Ok(value) => @test.assert_eq(value, "Baker_Apple_Baker")
+    Err(message) => @test.fail(message)
+  }
+}
+
+///|
+test "public validators reject policy violations" {
+  let compatible = PasswordPolicy::compatible()
+  @test.assert_eq(validate_password(compatible, "Abcdefgh2345"), true)
+  @test.assert_eq(validate_password(compatible, "Abcdefgh23!5"), false)
+  @test.assert_eq(validate_pin("01234567890123456789012345678901"), true)
+  @test.assert_eq(validate_pin("123x"), false)
+}
+
+///|
+test "entropy estimates and strength bands are portable" {
+  let entropy = PasswordPolicy::standard().estimated_entropy_bits_x10()
+  @test.assert_eq(entropy > 800, true)
+  @test.assert_eq(strength_from_entropy_x10(entropy), Strength::very_strong())
+  @test.assert_eq(estimate_pin_entropy_bits_x10(6), 199)
+  @test.assert_eq(
+    estimate_passphrase_entropy_bits_x10(PassphrasePolicy::standard(), 2048),
+    440,
+  )
+}
+
+///|
+test "library bounds match CLI contract" {
+  @test.assert_eq(PasswordPolicy::new(4, symbols=false).is_valid(), true)
+  @test.assert_eq(PasswordPolicy::new(128).is_valid(), true)
+  @test.assert_eq(PasswordPolicy::new(129).is_valid(), false)
+  match generate_pin(32, fn() { 0U }) {
+    Ok(value) => @test.assert_eq(value.length(), 32)
+    Err(message) => @test.fail(message)
+  }
+}

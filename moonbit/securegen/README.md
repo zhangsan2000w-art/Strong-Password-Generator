@@ -10,25 +10,33 @@ behind the AI Passport firmware, not a wrapper around ESP-IDF or FoloToy APIs.
 
 - `PasswordPolicy` provides typed compatible, standard, strict, and custom
   policies.
-- `generate_password` and `generate_pin` return ordinary MoonBit `String`
-  values for application code.
+- `PassphrasePolicy` and `PassphraseSeparator` make dictionary-based output a
+  typed application API instead of an embedded-only callback surface.
+- `generate_password`, `generate_pin`, and `generate_passphrase` return
+  ordinary MoonBit `String` values for application code.
 - `generate_password_into`, `generate_pin_into`, and
   `generate_passphrase_into` write to a caller-owned sink for constrained or
   embedded consumers.
-- Every generation API receives `next_u32 : () -> UInt`; the package never
-  silently substitutes a weak random source.
+- `RandomSource` is the typed entropy boundary; callback overloads remain
+  available for allocation-controlled and C-compatible adapters.
+- `validate_password` and `validate_pin` check generated or imported values.
+- entropy estimators report tenths of a bit, and `Strength` maps estimates to
+  presentation bands without claiming that the caller's RNG is secure.
 
 ```moonbit
 let policy = @securegen.PasswordPolicy::standard()
-match @securegen.generate_password(policy, secure_random_u32) {
+let random = @securegen.RandomSource::new(secure_random_u32)
+match @securegen.generate_password_with_source(policy, random) {
   Ok(secret) => use_secret(secret)
   Err(message) => report_error(message)
 }
 ```
 
-The module currently verifies the package with the Native checker and executes
-its tests on WasmGC. The code does not import firmware, filesystem, network, UI,
-or operating-system packages.
+Password lengths are supported from 4 to 128 characters and PINs from 4 to 32
+digits. Platform adapters may apply narrower product limits. The module checks
+the package for Native and executes its portable tests on WasmGC and JavaScript.
+The code does not import firmware, filesystem, network, UI, or operating-system
+packages.
 
 ## Applications
 
@@ -53,3 +61,6 @@ The caller owns entropy quality, secret display, storage, transmission, and
 zeroization. A deterministic callback is useful for tests but is not a secure
 random source. The CLI uses the host environment's cryptographic random source;
 the FoloToy application injects its platform RNG through the C FFI boundary.
+Entropy functions estimate a policy's search space; they do not measure runtime
+randomness, password reuse, online rate limits, or resistance to user-chosen
+patterns.

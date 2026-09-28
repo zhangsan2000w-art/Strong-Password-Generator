@@ -217,7 +217,7 @@ pub fn generate_pin_into(
   emit : (Int) -> Bool,
   length : Int,
 ) -> Int {
-  if length < 4 || length > 12 {
+  if length < 4 || length > 32 {
     return -1
   }
   let mut index = 0
@@ -252,7 +252,7 @@ pub fn generate_pin(
   )
   match result {
     0 => Ok(builder.to_string())
-    -1 => Err("PIN length must be between 4 and 12")
+    -1 => Err("PIN length must be between 4 and 32")
     _ => Err("output rejected generated digit")
   }
 }
@@ -339,7 +339,7 @@ fn policy_valid(
     (if uppercase { 1 } else { 0 }) +
     (if digits { 1 } else { 0 }) +
     (if symbols { 1 } else { 0 })
-  length >= 6 && length <= 30 && required > 0 && length >= required
+  length >= 4 && length <= 128 && required > 0 && length >= required
 }
 
 ///|

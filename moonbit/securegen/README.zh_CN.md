@@ -9,21 +9,30 @@ Passphrase。它是 AI Passport 固件所使用的可复用引擎，不是 ESP-I
 ## 公共 API
 
 - `PasswordPolicy` 提供类型化的兼容、标准、严格和自定义策略。
-- `generate_password` 与 `generate_pin` 为应用代码返回普通 MoonBit `String`。
+- `PassphrasePolicy` 与 `PassphraseSeparator` 把词库口令从仅供嵌入式调用的
+  callback 接口提升为类型化应用 API。
+- `generate_password`、`generate_pin` 与 `generate_passphrase` 为应用代码返回
+  普通 MoonBit `String`。
 - `generate_password_into`、`generate_pin_into` 和
   `generate_passphrase_into` 写入调用方持有的 sink，适用于资源受限和嵌入式环境。
-- 所有生成 API 都要求调用方传入 `next_u32 : () -> UInt`；库不会暗中使用弱随机源。
+- `RandomSource` 是类型化随机源边界；为可控内存分配与 C 兼容适配器保留 callback
+  重载。
+- `validate_password` 与 `validate_pin` 可校验生成或导入的凭据。
+- 熵估算器以 0.1 bit 为单位返回结果，`Strength` 只负责把估算值映射为展示档位，
+  不对调用方随机源的安全性做保证。
 
 ```moonbit
 let policy = @securegen.PasswordPolicy::standard()
-match @securegen.generate_password(policy, secure_random_u32) {
+let random = @securegen.RandomSource::new(secure_random_u32)
+match @securegen.generate_password_with_source(policy, random) {
   Ok(secret) => use_secret(secret)
   Err(message) => report_error(message)
 }
 ```
 
-当前模块使用 Native checker 检查该包，并在 WasmGC 上实际运行测试。库代码不导入
-固件、文件系统、网络、UI 或操作系统包。
+密码长度支持 4～128 个字符，PIN 支持 4～32 位；平台适配层可以施加更窄的产品
+限制。当前模块使用 Native checker 检查该包，并在 WasmGC 与 JavaScript 上执行可移植
+测试。库代码不导入固件、文件系统、网络、UI 或操作系统包。
 
 ## 应用
 
@@ -44,3 +53,5 @@ moon -C moonbit run examples/cli --target js --release -- --profile strict --len
 
 调用方负责随机熵质量、密码显示、存储、传输和清零。确定性回调适合测试，但不是安全
 随机源。CLI 使用宿主环境提供的密码学随机源；FoloToy 应用通过 C FFI 注入平台随机源。
+熵函数估算的是策略搜索空间，不会测量运行时随机质量、密码复用、在线限速或用户自选
+模式的抵抗能力。
