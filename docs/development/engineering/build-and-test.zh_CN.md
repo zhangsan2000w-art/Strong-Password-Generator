@@ -31,14 +31,8 @@ target 或已跟踪 defaults 时，先保留有意的本地设置，再运行
 
 固件门禁使用全新的临时构建目录，并从仓库 `sdkconfig.defaults` 生成隔离的 `sdkconfig`。它不会读取或覆盖开发者根目录的 `sdkconfig`，只把验证通过的合并镜像复制到 `build/FoloToy-AI-Passport-full.bin`。门禁同时验证[当前配置的固件布局](firmware-layout.zh_CN.md)：从 `flash_args` 读取镜像偏移，检查分区表 MD5、边界和不重叠，并确认应用从所配置的 app 分区起点开始且未超出分区。允许用户自定义分区布局。
 
-当前基线含一个可独立运行的纯逻辑测试：
-
-```bash
-cc -std=c11 -Wall -Wextra -Werror -Imain \
-  tests/test_ui_pixel_math.c main/ui_pixel_math.c \
-  -o /tmp/test_ui_pixel_math
-/tmp/test_ui_pixel_math
-```
+仓库的轻量逻辑（吉祥物动画数学、演示页导航）在 MoonBit 核心里，由 `moon test`
+覆盖，没有单独的 C 侧逻辑测试。
 
 统一验证入口：
 

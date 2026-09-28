@@ -22,7 +22,6 @@ usage() {
 
 run_static_checks() {
     local actionlint_bin
-    local test_dir
 
     "${python_bin}" tools/check_repo.py
 
@@ -42,18 +41,10 @@ run_static_checks() {
     fi
     "${actionlint_bin}" -color .github/workflows/*.yml
 
-    test_dir="$(mktemp -d /tmp/ai-passport-host-tests.XXXXXX)"
-    "${CC:-cc}" -std=c11 -Wall -Wextra -Werror -Imain \
-        tests/test_ui_pixel_math.c main/ui_pixel_math.c \
-        -o "${test_dir}/test_ui_pixel_math"
-    "${test_dir}/test_ui_pixel_math"
-    "${CC:-cc}" -std=c11 -Wall -Wextra -Werror -Imain \
-        tests/test_demo_navigation.c main/demo_navigation.c \
-        -o "${test_dir}/test_demo_navigation"
-    "${test_dir}/test_demo_navigation"
+    # ui_pixel_math / demo_navigation 的纯逻辑已经并入 MoonBit 核心，由上面的
+    # moon test 覆盖；C 侧不再保留只跑这两块逻辑的主机测试。
     PYTHONDONTWRITEBYTECODE=1 "${python_bin}" tests/test_verify_firmware.py
     PYTHONDONTWRITEBYTECODE=1 "${python_bin}" tests/test_screenshot_convert.py
-    rm -rf "${test_dir}"
     echo "Host tests: PASS"
 }
 

@@ -419,7 +419,7 @@ idf.py flash monitor
 
 配置陈旧时可执行 `idf.py fullclean`，但这会删除生成的 build 状态；不要用它处理源码工作区问题。
 
-仓库有 `tests/test_ui_pixel_math.c` 轻量逻辑测试源，但当前根 CMake 是 ESP-IDF 工程，未提供统一的 host test 命令。因此 `idf.py build` 是最低自动检查，硬件变更必须上板。
+仓库的轻量逻辑（吉祥物动画数学、演示页导航）在 MoonBit 核心里，由 `moon test` 覆盖，没有单独的 C 侧逻辑测试。根 CMake 是 ESP-IDF 工程，`idf.py build` 仍是最低自动检查，硬件变更必须上板。
 
 ### 通用上板验收
 

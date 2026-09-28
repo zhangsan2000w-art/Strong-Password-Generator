@@ -7,6 +7,7 @@ set(GENERATED_WORDLIST_C "${GENERATED_DIR}/eff_short_wordlist.c")
 set(MOONBIT_SOURCES
     "${MOONBIT_SOURCE_DIR}/battery.mbt"
     "${MOONBIT_SOURCE_DIR}/ble_keyboard.mbt"
+    "${MOONBIT_SOURCE_DIR}/demo_navigation.mbt"
     "${MOONBIT_SOURCE_DIR}/diagnostics.mbt"
     "${MOONBIT_SOURCE_DIR}/entropy.mbt"
     "${MOONBIT_SOURCE_DIR}/ffi.mbt"
@@ -23,6 +24,7 @@ set(MOONBIT_SOURCES
     "${MOONBIT_SOURCE_DIR}/sound.mbt"
     "${MOONBIT_SOURCE_DIR}/state.mbt"
     "${MOONBIT_SOURCE_DIR}/strength.mbt"
+    "${MOONBIT_SOURCE_DIR}/ui_pixel_math.mbt"
     "${MOONBIT_SOURCE_DIR}/view_model.mbt"
 )
 

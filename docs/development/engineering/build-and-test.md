@@ -33,14 +33,9 @@ The tracked `dependencies.lock` pins Managed Component resolution. After changin
 
 Firmware validation uses a fresh temporary build directory and an isolated `sdkconfig` generated from the tracked defaults. It does not consume or overwrite a developer's root `sdkconfig`, and it copies only the verified merged image to `build/FoloToy-AI-Passport-full.bin`. The gate also validates the [configured firmware layout](firmware-layout.md): image offsets from `flash_args`, partition-table MD5, bounds and non-overlap, and an application that starts in and fits its configured app partition. User-defined partition layouts are allowed.
 
-The baseline also has a hardware-independent logic test:
-
-```bash
-cc -std=c11 -Wall -Wextra -Werror -Imain \
-  tests/test_ui_pixel_math.c main/ui_pixel_math.c \
-  -o /tmp/test_ui_pixel_math
-/tmp/test_ui_pixel_math
-```
+The baseline's hardware-independent logic (mascot animation math and demo-page
+navigation) lives in the MoonBit core and is covered by `moon test`; there is no
+separate C-level logic test to run.
 
 Use the unified validation entry point:
 

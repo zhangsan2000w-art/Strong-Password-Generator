@@ -679,3 +679,19 @@ pub fn passport_moonbit_sound_note_samples(note : Int) -> Int {
 pub fn passport_moonbit_sound_sample(note : Int, sample_index : Int) -> Int {
   sound_sample(note, sample_index)
 }
+
+///|
+#export_name("passport_moonbit_ui_pixel_blink_frame")
+pub fn passport_moonbit_ui_pixel_blink_frame(elapsed_ms : UInt64) -> Int {
+  if ui_pixel_blink_frame(elapsed_ms) {
+    1
+  } else {
+    0
+  }
+}
+
+///|
+#export_name("passport_moonbit_ui_pixel_jump_offset")
+pub fn passport_moonbit_ui_pixel_jump_offset(frame : Int) -> Int {
+  ui_pixel_jump_offset(frame)
+}

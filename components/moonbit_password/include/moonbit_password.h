@@ -96,6 +96,12 @@ int32_t passport_moonbit_screenshot_matcher_feed(int32_t state, int32_t byte);
 int32_t passport_moonbit_screenshot_header_build(int32_t width, int32_t height, int32_t payload);
 int32_t passport_moonbit_screenshot_geometry_ok(int32_t width, int32_t height, int32_t stride, int32_t data_size, int32_t expected_width, int32_t expected_height);
 
+/* Pixel-UI animation math (moonbit/ui_pixel_math.mbt): mascot blink phase and
+ * jump curve. Previously main/ui_pixel_math.c, which only the host C test used;
+ * the logic now lives in the MoonBit core and is covered by moon test. */
+int32_t passport_moonbit_ui_pixel_blink_frame(uint64_t elapsed_ms);
+int32_t passport_moonbit_ui_pixel_jump_offset(int32_t frame);
+
 #ifdef __cplusplus
 }
 #endif
