@@ -24,8 +24,9 @@
 - [`moonbit/securegen`](moonbit/securegen/README.zh_CN.md) 是与平台无关的 MoonBit
   包，提供类型化 `PasswordPolicy`、返回 String 的应用 API、可控内存分配的嵌入式
   API，以及由调用方注入的随机源。
-- [`moonbit/examples/cli`](moonbit/examples/cli/main.mbt) 是在 WasmGC 上消费该包的
-  独立 MoonBit 应用；其中的确定性随机源明确只用于演示。
+- [`moonbit/examples/cli`](moonbit/examples/cli/main.mbt) 是通过
+  `moonbitlang/core/env` 使用宿主密码学随机源的独立 MoonBit 应用，支持策略、长度、
+  PIN 和批量生成。
 - AI Passport 固件是第二个真实应用。它的稳定 C ABI 现在把密码、PIN 和 Passphrase
   生成委托给 `securegen`，C 继续负责硬件随机熵与设备 I/O。
 
@@ -43,7 +44,7 @@ ESP-IDF、LVGL、BLE 或 FoloToy 代码。
 
 ## MoonBit 主体实现
 
-当前仓库有 4,010 行生产 `.mbt` 与 2,021 行 MoonBit 测试，共 6,031 行。排除测试、示例、空行和注释后，生产 MoonBit 有效代码为 3,347 行。`tools/check_repo.py` 会递归扫描所有包，并独立检查生产实现不少于 1,000 有效行；测试与示例不能用于凑这个门槛。
+当前仓库有 4,209 行生产 `.mbt` 与 2,069 行 MoonBit 测试，共 6,278 行。排除测试、示例、空行和注释后，生产 MoonBit 有效代码为 3,363 行。`tools/check_repo.py` 会递归扫描所有包，并独立检查生产实现不少于 1,000 有效行；测试与示例不能用于凑这个门槛。
 
 MoonBit 生产模块直接进入 ESP-IDF 构建，并被固件调用：
 
@@ -98,10 +99,10 @@ MOONBIT_NEW_NATIVE=0 moon -C moonbit test --target native --release
 ```bash
 moon -C moonbit test -p folotoy/strong-password-generator-ai-passport/securegen \
   --target wasm-gc --release --deny-warn
-moon -C moonbit run examples/cli --target wasm-gc --release
+moon -C moonbit run examples/cli --target js --release -- --profile strict --length 24
 ```
 
-确定性随机源只用于主机测试。固件随机数始终通过 C FFI 进入 ESP32 适配器。
+确定性随机源只用于测试。CLI 使用宿主密码学随机源；固件随机数通过 C FFI 进入 ESP32 适配器。
 
 ## 构建
 

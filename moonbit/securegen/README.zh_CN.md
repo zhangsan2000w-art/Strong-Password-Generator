@@ -27,8 +27,8 @@ match @securegen.generate_password(policy, secure_random_u32) {
 
 ## 应用
 
-- `../examples/cli` 是独立的 MoonBit 消费者，用于证明该包可以脱离固件包导入。
-  其中的确定性生成器只用于可复现演示，不能生成真实密码。
+- `../examples/cli` 是独立的 MoonBit 消费者，通过 `moonbitlang/core/env`
+  获取密码学安全随机源，支持密码策略、自定义长度、PIN 和批量生成。
 - 仓库根 MoonBit 包是供 FoloToy AI Passport 固件使用的 Native foreign-library
   适配器；现有 C ABI 已把生成工作委托给 `securegen`。
 
@@ -37,10 +37,10 @@ match @securegen.generate_password(policy, secure_random_u32) {
 ```bash
 moon -C moonbit test -p folotoy/strong-password-generator-ai-passport/securegen \
   --target wasm-gc --release --deny-warn
-moon -C moonbit run examples/cli --target wasm-gc --release
+moon -C moonbit run examples/cli --target js --release -- --profile strict --length 24
 ```
 
 ## 安全边界
 
 调用方负责随机熵质量、密码显示、存储、传输和清零。确定性回调适合测试，但不是安全
-随机源。FoloToy 应用通过 C FFI 注入平台随机源，绝不会使用 CLI 示例的确定性随机源。
+随机源。CLI 使用宿主环境提供的密码学随机源；FoloToy 应用通过 C FFI 注入平台随机源。

@@ -32,9 +32,9 @@ or operating-system packages.
 
 ## Applications
 
-- `../examples/cli` is an independent MoonBit consumer that proves the package
-  can be imported outside the firmware package. Its deterministic generator is
-  for reproducible demonstration only and must not be used for real secrets.
+- `../examples/cli` is an independent MoonBit consumer that obtains
+  cryptographically secure entropy through `moonbitlang/core/env`. It supports
+  password profiles, custom lengths, PINs, and multiple generated values.
 - The repository-root MoonBit package is a Native foreign-library adapter used
   by the FoloToy AI Passport firmware. Its existing C ABI delegates generation
   to `securegen`.
@@ -44,12 +44,12 @@ Run the portable package tests and example:
 ```bash
 moon -C moonbit test -p folotoy/strong-password-generator-ai-passport/securegen \
   --target wasm-gc --release --deny-warn
-moon -C moonbit run examples/cli --target wasm-gc --release
+moon -C moonbit run examples/cli --target js --release -- --profile strict --length 24
 ```
 
 ## Security boundary
 
 The caller owns entropy quality, secret display, storage, transmission, and
 zeroization. A deterministic callback is useful for tests but is not a secure
-random source. The FoloToy application injects its platform RNG through the C
-FFI boundary and never uses the CLI example's deterministic source.
+random source. The CLI uses the host environment's cryptographic random source;
+the FoloToy application injects its platform RNG through the C FFI boundary.

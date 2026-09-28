@@ -26,6 +26,17 @@ test "standard policy produces a reusable String result" {
 }
 
 ///|
+test "policy length can be overridden" {
+  let source = Sequence::new([1U, 9U, 17U, 25U, 33U, 41U, 49U, 57U])
+  let policy = PasswordPolicy::compatible().with_length(24)
+  @test.assert_eq(policy.length(), 24)
+  match generate_password(policy, fn() { source.next() }) {
+    Ok(value) => @test.assert_eq(value.length(), 24)
+    Err(message) => @test.fail(message)
+  }
+}
+
+///|
 test "standard policy guarantees every enabled character class" {
   let source = Sequence::new([1U, 9U, 17U, 25U, 33U, 41U, 49U, 57U])
   match generate_password(PasswordPolicy::standard(), fn() { source.next() }) {

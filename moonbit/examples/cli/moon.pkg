@@ -2,4 +2,9 @@ pkgtype(kind: "executable")
 
 import {
   "folotoy/strong-password-generator-ai-passport/securegen",
+  "moonbitlang/core/env",
 }
+
+import {
+  "moonbitlang/core/test",
+} for "wbtest"

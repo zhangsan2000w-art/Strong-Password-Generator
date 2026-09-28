@@ -26,8 +26,8 @@ only as firmware internals:
   MoonBit package with typed `PasswordPolicy`, String-returning application
   APIs, allocation-controlled embedded APIs, and an injected random source.
 - [`moonbit/examples/cli`](moonbit/examples/cli/main.mbt) is an independent
-  MoonBit application consuming the package on WasmGC. Its deterministic
-  source is explicitly demonstration-only.
+  MoonBit application using host cryptographic entropy through
+  `moonbitlang/core/env`; it supports profiles, custom lengths, PINs, and batch output.
 - The AI Passport firmware is a second, real application. Its stable C ABI now
   delegates password, PIN, and passphrase generation to `securegen` while C
   continues to provide hardware entropy and device I/O.
@@ -46,7 +46,7 @@ share the same engine without depending on ESP-IDF, LVGL, BLE, or FoloToy code.
 
 ## MoonBit-first implementation
 
-The repository now contains 4,010 production `.mbt` lines and 2,021 MoonBit test lines, 6,031 in total. Excluding tests, examples, blank lines, and comments leaves 3,347 effective production MoonBit lines. `tools/check_repo.py` scans packages recursively and independently enforces at least 1,000 effective production lines; tests and examples cannot satisfy that gate.
+The repository now contains 4,209 production `.mbt` lines and 2,069 MoonBit test lines, 6,278 in total. Excluding tests, examples, blank lines, and comments leaves 3,363 effective production MoonBit lines. `tools/check_repo.py` scans packages recursively and independently enforces at least 1,000 effective production lines; tests and examples cannot satisfy that gate.
 
 The production MoonBit modules are compiled into and called by the ESP-IDF firmware. They own:
 
@@ -101,10 +101,10 @@ The reusable package also has a backend-independent gate that runs on WasmGC:
 ```bash
 moon -C moonbit test -p folotoy/strong-password-generator-ai-passport/securegen \
   --target wasm-gc --release --deny-warn
-moon -C moonbit run examples/cli --target wasm-gc --release
+moon -C moonbit run examples/cli --target js --release -- --profile strict --length 24
 ```
 
-The deterministic test source is used only by host tests. Firmware randomness always crosses the C FFI boundary into the ESP32 adapter.
+Deterministic sources are used only by tests. The CLI uses host cryptographic entropy; firmware randomness crosses the C FFI boundary into the ESP32 adapter.
 
 ## Build
 

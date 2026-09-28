@@ -58,6 +58,16 @@ pub fn PasswordPolicy::length(self : PasswordPolicy) -> Int {
 }
 
 ///|
+/// Return the same policy with a different output length. This preserves the
+/// selected profile's character-set rules.
+pub fn PasswordPolicy::with_length(
+  self : PasswordPolicy,
+  length : Int,
+) -> PasswordPolicy {
+  { ..self, length, }
+}
+
+///|
 pub fn PasswordPolicy::is_valid(self : PasswordPolicy) -> Bool {
   policy_valid(
     self.length,
