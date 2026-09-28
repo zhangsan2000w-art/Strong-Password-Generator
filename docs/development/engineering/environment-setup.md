@@ -315,8 +315,8 @@ export IDF_COMPONENT_STORAGE_URL="https://components-file.espressif.cn"
 ```
 
 This changes only the component file-storage endpoint. Version selection still
-comes from `components/bsp/idf_component.yml` and the tracked
-`dependencies.lock`.
+comes from `examples/folotoy-ai-passport/components/bsp/idf_component.yml` and
+the tracked lock file in that example.
 
 ## Obtain the project
 
@@ -348,9 +348,9 @@ rename an existing ignored `sdkconfig` to `sdkconfig.old`.
 `idf.py fullclean` removes build output but does not fully synchronize an
 existing `sdkconfig` with changed defaults.
 
-The first build downloads the versions pinned by `dependencies.lock` into
-`managed_components/`. Never edit that generated directory. A normal build must
-not leave an unexplained `dependencies.lock` diff.
+The first build downloads the versions pinned by the example's
+`dependencies.lock` into its `managed_components/`. Never edit that generated
+directory. A normal build must not leave an unexplained lock-file diff.
 
 Confirm the baseline configuration:
 

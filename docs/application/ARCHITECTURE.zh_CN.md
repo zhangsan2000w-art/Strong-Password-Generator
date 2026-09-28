@@ -44,13 +44,13 @@ MoonBit 负责产品规则，C 负责平台边界。MoonBit 核心模块不导�
 
 应用状态压缩在一个 `UInt64` 中，C 适配层将其视为不透明值。状态机处理每次输入前会清除一次性 action 字段，因此停留在生成行时再次按 `OK` 可以有意重新生成。
 
-当前生产 MoonBit 有效代码为 3,363 行（排除测试、示例、空行和注释），物理生产代码 4,209 行，另有 2,069 行 MoonBit 测试。仓库静态检查递归扫描所有包，并阻止生产 MoonBit 有效行数回落到 1,000 以下。
+当前生产 MoonBit 有效代码为 3,619 行（排除测试、应用、空行和注释），物理生产代码 4,335 行，另有 2,330 行 MoonBit 测试/CLI 代码。仓库静态检查同时扫描根库与固件适配层，并阻止生产 MoonBit 有效行数回落到 1,000 以下。
 
 ## 平台集成
 
 `tools/generate_moonbit.py` 分别对平台无关的 `securegen` 库和 Native 固件适配包调用 `moonc build-package`，再把两份 core 链接成可移植 C。ESP-IDF 随后编译生成的 C 与仓库内 MoonBit runtime。测试文件、CLI 应用和主机 stub 不会进入固件代码生成。
 
-`src/cmd/securegen` 直接导入根 `moonbit-securegen` 包，作为 JavaScript 目标 CLI 独立运行，支持策略、长度、PIN 和批量选项，并通过 `moonbitlang/core/env` 获取密码学随机熵。固件适配器是独立 workspace 模块，并通过 C FFI 注入硬件随机熵。
+`src/cmd/securegen` 直接导入根 `moonbit-securegen` 包，作为 JavaScript 目标 CLI 独立运行，支持策略、长度、PIN 和批量选项，并通过 `moonbitlang/core/env` 获取密码学随机熵。`examples/folotoy-ai-passport/moonbit` 下的固件适配器是独立 workspace 模块，并通过 C FFI 注入硬件随机熵。
 
 FFI 表面只包含整数、不透明 64 位状态、一个 `UInt` 随机回调、字符输出及词库查询。视图、电量和声音也通过整数型纯函数导出，避免把 LVGL、I2C 或 ES8311 类型带入 MoonBit。未来更换板卡时，可以只替换这些硬件调用，无需重写产品策略。
 

@@ -64,7 +64,7 @@ ESP-IDF、LVGL、BLE 或 FoloToy 代码。
 
 ## MoonBit 主体实现
 
-当前仓库有 4,209 行生产 `.mbt` 与 2,069 行 MoonBit 测试，共 6,278 行。排除测试、示例、空行和注释后，生产 MoonBit 有效代码为 3,363 行。`tools/check_repo.py` 会递归扫描所有包，并独立检查生产实现不少于 1,000 有效行；测试与示例不能用于凑这个门槛。
+当前仓库有 4,335 行物理生产 `.mbt` 与 2,330 行 MoonBit 测试/CLI 代码，共 6,665 行。排除测试、应用、空行和注释后，生产 MoonBit 有效代码为 3,619 行。`tools/check_repo.py` 会同时扫描根库与固件适配层，并独立检查生产实现不少于 1,000 有效行；测试与应用不能用于凑这个门槛。
 
 MoonBit 生产模块直接进入 ESP-IDF 构建，并被固件调用：
 
@@ -174,8 +174,8 @@ python -m esptool --chip esp32c3 --baud 460800 \
 - 易记模式内置 Electronic Frontier Foundation 的 1,296 词 [EFF Short Wordlist for Passphrases #1](https://www.eff.org/files/2016/09/08/eff_short_wordlist_1.txt)，按 CC BY 3.0 US 署名使用。仓库内源文件 SHA-256 为 `8f5ca830b8bffb6fe39c9736c024a00a6a6411adb3f83a9be8bfeeb6e067ae69`。
 - 构建时代码生成器将单词打包为一个以 NUL 分隔的常量字节块和 16 位偏移表。数据保留在 Flash 中，启动时不会整体加载进 RAM。
 - 中文 LVGL 字形子集由 Noto Sans SC 生成，OFL 1.1 声明位于 [`assets/fonts/NotoSansSC-OFL.txt`](assets/fonts/NotoSansSC-OFL.txt)。固件仅编入 ASCII 和 V1 界面需要的中文字形；当前子集使用 17px、4bpp 和强 autohint 改善小屏笔画粗细。
-- 字形子集使用 LVGL 压缩字体格式，因此 `sdkconfig.defaults` 启用 `CONFIG_LV_USE_FONT_COMPRESSED=y`。如果面板和生成结果正常，但标题、模式与按钮文字为空白，请按默认配置重新构建，并确认生成的 `sdkconfig` 包含该选项。
-- 随固件编译的 MoonBit runtime 文件保留 Apache-2.0 声明，见 [`components/moonbit_password/RUNTIME_LICENSE.txt`](components/moonbit_password/RUNTIME_LICENSE.txt)。项目自有代码沿用仓库 MIT License。
+- 字形子集使用 LVGL 压缩字体格式，因此 `examples/folotoy-ai-passport/sdkconfig.defaults` 启用 `CONFIG_LV_USE_FONT_COMPRESSED=y`。如果面板和生成结果正常，但标题、模式与按钮文字为空白，请按默认配置重新构建，并确认生成的 `sdkconfig` 包含该选项。
+- 随固件编译的 MoonBit runtime 文件保留 Apache-2.0 声明，见 [`examples/folotoy-ai-passport/components/moonbit_password/RUNTIME_LICENSE.txt`](examples/folotoy-ai-passport/components/moonbit_password/RUNTIME_LICENSE.txt)。项目自有代码沿用仓库 MIT License。
 
 ## 设计与安全
 
@@ -186,4 +186,4 @@ python -m esptool --chip esp32c3 --baud 460800 \
 
 ## 验证状态
 
-当前代码定义了 69 项 MoonBit 测试。MoonBit 严格检查、2,397 行生产有效代码门禁、仓库检查、11 项 Python 固件布局测试、ESP-IDF 5.5.3 固件构建及合并镜像校验已在本地通过。本机检测到的旧版 Windows C 编译器找不到 `stdint.h`，因此原生 MoonBit 测试可执行文件未能构建；这是环境失败，不能记为测试通过。BLE 配对和键盘输入、双主题设置页、重启后的偏好保留、声音开关、字体、按键、电池行为和 RNG 适配器仍需真机验证。
+当前代码定义了 118 项 MoonBit 测试。根库 WasmGC 测试、CLI JavaScript 测试、Native C 代码生成、3,619 行生产有效代码门禁、仓库检查及 18 项 Python 测试已在本地通过。当前 shell 未激活 ESP-IDF 工具链，因此迁移后的示例尚未重新执行完整固件构建；迁移前的构建不能作为新路径的验证结果。BLE 配对和键盘输入、双主题设置页、重启后的偏好保留、声音开关、字体、按键、电池行为和 RNG 适配器仍需真机验证。

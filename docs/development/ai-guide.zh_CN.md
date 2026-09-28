@@ -13,9 +13,9 @@
 
 1. 阅读 `AGENTS.zh_CN.md`，根据其中的任务路由只加载当前修改所需文档；不要默认读取全部 README 或完整硬件指南。
 2. 执行 `git status --short --branch`，保留用户已有改动。
-3. 阅读需求会触及的 `components/bsp/include/*.h` 及其实现，不根据芯片或开发板的常见配置猜测本板行为。
+3. 阅读需求会触及的 `examples/folotoy-ai-passport/components/bsp/include/*.h` 及其实现，不根据芯片或开发板的常见配置猜测本板行为。
 4. 用 `git branch -r --list 'origin/demo/*'` 查找接近需求的示例，只复用相关设计，不默认合并整个示例分支。
-5. 将需求拆成输入、输出、状态、并发任务、持久化、内存预算和失败降级，再决定修改 `main` 还是扩展 `components/bsp`。
+5. 将需求拆成输入、输出、状态、并发任务、持久化、内存预算和失败降级，再决定修改示例的 `main` 还是扩展 `components/bsp`。
 6. 迭代时运行最小相关测试，交付前运行 `./tools/validate.sh`；所有依赖屏幕、按键、音频、电池或时序的结论均保留真机验收项。
 
 ## 2. 事实来源优先级（Source-of-truth priority）
@@ -24,7 +24,7 @@
 
 ```text
 产品规格 / 实机测量
-    > components/bsp/include/bsp_pins.h
+    > examples/folotoy-ai-passport/components/bsp/include/bsp_pins.h
     > BSP 公开头文件与实现
     > docs/hardware-design/AI_HARDWARE_DEVELOPMENT_GUIDE.md
     > README 与示例应用
@@ -36,20 +36,20 @@
 
 ```text
 Natural-language requirement
-  └─ main/                         Pages, state machines, animation, app tasks, assets
-      └─ components/bsp/include/  Stable board-level APIs
-          └─ components/bsp/src/  GPIO, buses, devices, and driver details
+  └─ examples/folotoy-ai-passport/main/             页面与应用任务
+      └─ examples/folotoy-ai-passport/components/bsp/include/  稳定板级 API
+          └─ examples/folotoy-ai-passport/components/bsp/src/  驱动实现
               └─ bsp_pins.h       Single source of truth for pins and hardware parameters
 ```
 
-新增普通页面时，创建 `main/demo_<feature>.c` 并实现 `enter`、`exit`、`key` 接口，然后同步修改：
+新增普通页面时，在 `examples/folotoy-ai-passport/main` 创建 `demo_<feature>.c` 并实现 `enter`、`exit`、`key` 接口，然后同步修改：
 
-- `main/demo.h` 中的声明；
-- `main/CMakeLists.txt` 中的源文件；
-- `main/main.c` 的 `DEMOS[]` 注册；
+- 同目录 `demo.h` 中的声明；
+- `examples/folotoy-ai-passport/main/CMakeLists.txt` 中的源文件；
+- 同目录 `main.c` 的 `DEMOS[]` 注册；
 - 若有新的可选外设，菜单的初始化状态与失败降级。
 
-只有多个应用都会使用的硬件能力才进入 `components/bsp`。BSP API 需要说明阻塞性、线程上下文、内存所有权、失败值和初始化顺序；引脚或 I2C 地址只能加入 `bsp_pins.h`。
+只有多个应用都会使用的硬件能力才进入示例的 `components/bsp`。BSP API 需要说明阻塞性、线程上下文、内存所有权、失败值和初始化顺序；引脚或 I2C 地址只能加入 `bsp_pins.h`。
 
 ## 4. 运行时不可破坏的规则（Runtime invariants）
 

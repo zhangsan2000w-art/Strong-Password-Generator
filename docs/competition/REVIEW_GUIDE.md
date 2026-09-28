@@ -28,7 +28,7 @@ cryptographic source while tests can use deterministic sequences.
 1. `src/cmd/securegen` is an independent host application. It uses
    `moonbitlang/core/env` cryptographic entropy and supports policy selection,
    custom lengths, PIN output, and batch generation.
-2. The `moonbit` workspace member is the FoloToy firmware adapter. It
+2. `examples/folotoy-ai-passport/moonbit` is the FoloToy firmware adapter. It
    preserves the device C ABI but delegates password, PIN, and passphrase
    generation to `securegen`.
 

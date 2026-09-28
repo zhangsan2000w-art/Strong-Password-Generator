@@ -273,7 +273,7 @@ printf 'IDF_PATH=%s\n' "${IDF_PATH}"
 export IDF_COMPONENT_STORAGE_URL="https://components-file.espressif.cn"
 ```
 
-它只改变组件文件存储端点；版本选择仍由 `components/bsp/idf_component.yml` 和已提交的 `dependencies.lock` 决定。
+它只改变组件文件存储端点；版本选择仍由 `examples/folotoy-ai-passport/components/bsp/idf_component.yml` 和示例中已提交的 `dependencies.lock` 决定。
 
 ## 获取项目
 
@@ -302,7 +302,7 @@ git status --short --branch
 
 `idf.py fullclean` 只删除构建输出，不能让已有 `sdkconfig` 完整同步新 defaults。
 
-首次构建会把 `dependencies.lock` 锁定的版本下载到 `managed_components/`。不得编辑这个生成目录；普通构建不应留下无法解释的 `dependencies.lock` diff。
+首次构建会把示例 `dependencies.lock` 锁定的版本下载到其 `managed_components/`。不得编辑这个生成目录；普通构建不应留下无法解释的 lock diff。
 
 核对基线配置：
 

@@ -23,7 +23,7 @@ user firmware.
 
 ## Custom layouts
 
-Users may edit `partitions.csv` to resize, move, add, or remove partitions for
+Users may edit `examples/folotoy-ai-passport/partitions.csv` to resize, move, add, or remove partitions for
 their application. A custom table may use OTA slots, filesystem/resource
 partitions, or other application-specific data. Keep the 8 MB device boundary,
 avoid overlaps, and make sure the application image is flashed at the start of

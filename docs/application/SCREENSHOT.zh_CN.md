@@ -36,11 +36,11 @@ python tools/screenshot.py --raw dump.bin --width 240 --height 320 --output scre
 
 ## 架构分工
 
-- `moonbit/screenshot.mbt` 承载协议核心，由 `moon test` 覆盖：命令匹配
+- `examples/folotoy-ai-passport/moonbit/screenshot.mbt` 承载协议核心，由 `moon test` 覆盖：命令匹配
   状态机（与"滑动窗口 + 行结束符复位"语义等价）、应答协议头构建、快照
   几何校验。C 适配层只传整数，并通过两个 `passport_screenshot_header_*`
   回调收回字节。
-- `main/fap_screenshot.c` 承载平台边界：显式安装 USB-Serial-JTAG 驱动
+- `examples/folotoy-ai-passport/main/fap_screenshot.c` 承载平台边界：显式安装 USB-Serial-JTAG 驱动
   （RX 256 字节、TX 1024 字节）、低于 LVGL 的优先级 3 读取任务、静态
   64 字节对齐的满屏快照缓冲（在 `bsp_lvgl_lock()` 下用
   `lv_snapshot_take_to_draw_buf()` 渲染）、按 TX 环形缓冲定标的 512 字节

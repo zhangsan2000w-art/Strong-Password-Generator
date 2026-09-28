@@ -6,12 +6,12 @@
 
 本文是面向 AI 编程助手和新开发者的板级上下文入口。目标不是替代数据手册，而是准确说明**当前仓库已经确认的硬件事实、软件架构、不可随意改变的约束、扩展方式和验收方法**。
 
-> 固件行为以 `components/bsp/include/bsp_pins.h` 和 BSP 实现为准，不得套用通用 ESP32-C3 开发板参数。
+> 固件行为以 `examples/folotoy-ai-passport/components/bsp/include/bsp_pins.h` 和 BSP 实现为准，不得套用通用 ESP32-C3 开发板参数。
 
 文档适用范围：
 
 - 适用对象：本仓库实现的 ESP32-C3 FoloToy AI Passport 板级映射。
-- 产品规格见 [specifications.zh_CN.md](specifications.zh_CN.md)；固件行为以 `bsp_pins.h`、BSP 实现、`sdkconfig.defaults`、`partitions.csv` 与 demo 代码为准。
+- 产品规格见 [specifications.zh_CN.md](specifications.zh_CN.md)；固件行为以 `bsp_pins.h`、BSP 实现及 `examples/folotoy-ai-passport` 下的配置与代码为准。
 - 代码复核日期：2026-08-26。
 
 ## 1. 开始任何任务前
@@ -20,7 +20,7 @@ AI 应先完成以下检查：
 
 1. 阅读 `AGENTS.md`、本文件和将要修改的 BSP 头文件/实现；产品背景不清楚时再读 `docs/README.md`，不默认加载全部 README。
 2. 执行 `git status --short`，保留用户已有改动，不覆盖、不清理无关文件。
-3. 判断修改属于哪一层：可复用硬件能力放入 `components/bsp`；菜单、动画、业务交互和验证页面放入 `main`。
+3. 判断修改属于哪一层：可复用硬件能力放入 `examples/folotoy-ai-passport/components/bsp`；业务交互放入示例的 `main` 目录。
 4. 以 `bsp_pins.h` 为当前板卡引脚和面板参数的单一事实来源，不在 `.c` 文件重复写 GPIO、I2C 地址或屏幕尺寸。
 5. 硬件相关修改必须位于产品规格和 BSP 明确定义的范围内。
 
@@ -110,7 +110,7 @@ app_main
 
 显示是 UI 的硬依赖，显示或 LVGL 初始化失败时 `app_main` 直接返回。按键、音频、电池是软依赖：初始化失败的菜单项显示 `[FAIL]`，其他页面仍可用。
 
-公开 BSP API 位于 `components/bsp/include/`：
+公开 BSP API 位于 `examples/folotoy-ai-passport/components/bsp/include/`：
 
 - `bsp_i2c.h`：共享总线初始化、句柄和扫描。
 - `bsp_display.h`：LCD、背光以及可选 LVGL 接入。
@@ -139,7 +139,7 @@ Wi-Fi、NimBLE 和 light/deep sleep 直接使用 ESP-IDF API，不属于板级 B
 
 ### 5.2 LVGL 内存和线程规则
 
-ESP32-C3 无 PSRAM。当前 LVGL 显示缓冲为 `240 × 20` 像素的单 DMA 缓冲，RGB565 约 9.6 KB；`sdkconfig.defaults` 的 LVGL 内部池为 24 KB。不要直接改为大行数双缓冲，也不要扩大 UI 内存池而不检查内部 RAM、最大连续堆和 I2S DMA 初始化。
+ESP32-C3 无 PSRAM。当前 LVGL 显示缓冲为 `240 × 20` 像素的单 DMA 缓冲，RGB565 约 9.6 KB；示例的 `sdkconfig.defaults` 将 LVGL 内部池设为 24 KB。不要直接改为大行数双缓冲，也不要扩大 UI 内存池而不检查内部 RAM、最大连续堆和 I2S DMA 初始化。
 
 LVGL 非线程安全：
 
@@ -240,7 +240,7 @@ SOC 准确度取决于电芯与 profile 的匹配程度。本驱动给出的是�
 
 ## 10. Flash、控制台和资源预算
 
-默认自定义固件基线使用 8 MB Flash。`sdkconfig.defaults` 固定使用 8 MB Flash 镜像配置，并关闭 `CONFIG_ESPTOOLPY_HEADER_FLASHSIZE_UPDATE`（不按探测容量回写镜像头，便于 `idf.py merge-bin`）；默认 `partitions.csv` 只提供 24 KB NVS、4 KB PHY data，以及从 `0x10000` 延伸到 Flash 末尾的 factory app（大小 `0x7F0000`）。它没有 OTA、设备身份或未使用的预留分区。用户固件可以把它替换成其它合法的 8 MB 分区布局。若实机探测结果不是 8 MB，则该设备不符合当前硬件基线；修改项目默认值前应先确认板卡和 Flash 料号。
+默认自定义固件基线使用 8 MB Flash。`examples/folotoy-ai-passport/sdkconfig.defaults` 固定使用 8 MB Flash 镜像配置，并关闭 `CONFIG_ESPTOOLPY_HEADER_FLASHSIZE_UPDATE`（不按探测容量回写镜像头，便于 `idf.py merge-bin`）；同目录 `partitions.csv` 只提供 24 KB NVS、4 KB PHY data，以及从 `0x10000` 延伸到 Flash 末尾的 factory app（大小 `0x7F0000`）。它没有 OTA、设备身份或未使用的预留分区。用户固件可以把它替换成其它合法的 8 MB 分区布局。若实机探测结果不是 8 MB，则该设备不符合当前硬件基线；修改项目默认值前应先确认板卡和 Flash 料号。
 
 从 `0x0` 写入合并镜像时，单文件中的间隙填充可能重置 NVS。需要保留已存应用
 状态时，应使用分段 `idf.py flash`。详见[固件布局](../development/engineering/firmware-layout.zh_CN.md)。
@@ -262,16 +262,16 @@ SOC 准确度取决于电芯与 profile 的匹配程度。本驱动给出的是�
 
 新增可复用硬件驱动：
 
-1. 在 `components/bsp/include/` 添加 `bsp_<feature>.h`，API 使用 `bsp_` 前缀。
-2. 在 `components/bsp/src/` 实现，硬件常量放 `bsp_pins.h`。
-3. 更新 `components/bsp/CMakeLists.txt` 的 SRCS/REQUIRES；新第三方组件加入 `idf_component.yml`。
+1. 在 `examples/folotoy-ai-passport/components/bsp/include/` 添加 `bsp_<feature>.h`，API 使用 `bsp_` 前缀。
+2. 在同级 `src/` 实现，硬件常量放 `bsp_pins.h`。
+3. 更新示例 `components/bsp/CMakeLists.txt` 的 SRCS/REQUIRES；新第三方组件加入 `idf_component.yml`。
 4. 初始化应尽量幂等，错误应返回 `esp_err_t` 并输出包含引脚/地址的诊断日志。
 5. 明确 API 的线程、阻塞、内存所有权、任务上下文和失败返回值。
 
 新增硬件验证页：
 
-1. 创建 `main/demo_<feature>.c`，实现 `enter`、`exit`、`key`；慢服务或页面私有任务另加可选的 `start`、`stop`。
-2. 在 `main/demo.h` 声明，在 `main/CMakeLists.txt` 加源文件，在 `main.c` 的 `DEMOS[]` 注册。
+1. 在 `examples/folotoy-ai-passport/main` 创建 `demo_<feature>.c`，实现 `enter`、`exit`、`key`；慢服务或页面私有任务另加可选的 `start`、`stop`。
+2. 在同目录 `demo.h` 声明，在 `CMakeLists.txt` 加源文件，在 `main.c` 的 `DEMOS[]` 注册。
 3. `enter` 创建并加载自己的 screen；不持 LVGL 锁调用 `start`，用有界握手完成 `stop` 后，再由 `exit` 删除定时器、screen 并清空指针。
 4. 页面文字保持英文；说明性注释可用中文。
 5. 慢操作放工作任务，结果通过短时 LVGL 锁更新界面；禁止在按键回调中启动或停止慢服务。
@@ -342,7 +342,7 @@ idf.py reconfigure
 idf.py build
 ```
 
-首次配置/构建时，ESP-IDF Component Manager 会根据 `components/bsp/idf_component.yml` 获取 LVGL、`esp_lvgl_port`、`button` 和 `esp_codec_dev` 等依赖，并生成 `managed_components/`、`dependencies.lock`、`sdkconfig` 和 `build/` 等状态。不要手工修改 `managed_components` 中的依赖源码；需要改变依赖版本时修改 manifest/lock，并重新构建验证。
+首次配置/构建时，ESP-IDF Component Manager 会根据 `examples/folotoy-ai-passport/components/bsp/idf_component.yml` 获取 LVGL、`esp_lvgl_port`、`button` 和 `esp_codec_dev` 等依赖，并在示例目录生成 `managed_components/`、`sdkconfig` 和 `build/` 等状态。不要手工修改生成依赖；需要改变版本时修改示例的 manifest/lock，并重新构建验证。
 
 `idf.py set-target esp32c3` 会重建目标相关配置。新 checkout、曾为其他芯片配置过的目录或目标变化时必须执行；普通增量构建不必每次执行。
 
@@ -352,7 +352,7 @@ idf.py build
 grep -E 'IDF_TARGET|ESP_CONSOLE_USB_SERIAL_JTAG|SPIRAM|FLASHSIZE' sdkconfig
 ```
 
-预期目标为 ESP32-C3、控制台为 USB Serial/JTAG、Flash 为 8 MB，并且不启用 PSRAM。`sdkconfig.defaults` 只影响新生成配置；已有 `sdkconfig` 不会自动完全跟随 defaults。defaults 变化后应检查配置差异，保留有意设置后运行 `idf.py set-target esp32c3` 重新生成配置。`idf.py fullclean` 只用于清理构建输出。
+预期目标为 ESP32-C3、控制台为 USB Serial/JTAG、Flash 为 8 MB，并且不启用 PSRAM。示例的 `sdkconfig.defaults` 只影响新生成配置；已有 `sdkconfig` 不会自动完全跟随 defaults。defaults 变化后应检查配置差异，保留有意设置后在示例目录运行 `idf.py set-target esp32c3` 重新生成配置。`idf.py fullclean` 只用于清理构建输出。
 
 ### 12.4 连接、烧录与监视
 

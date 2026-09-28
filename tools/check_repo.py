@@ -65,9 +65,9 @@ def check_required_files(errors: list[str]) -> None:
         ".github/CODE_OF_CONDUCT.md",
         ".github/SECURITY.md",
         ".github/SUPPORT.md",
-        "dependencies.lock",
-        "sdkconfig.defaults",
-        "partitions.csv",
+        "examples/folotoy-ai-passport/dependencies.lock",
+        "examples/folotoy-ai-passport/sdkconfig.defaults",
+        "examples/folotoy-ai-passport/partitions.csv",
         ".github/PULL_REQUEST_TEMPLATE.md",
     )
     for name in required:
@@ -75,7 +75,13 @@ def check_required_files(errors: list[str]) -> None:
             errors.append(f"missing required file: {name}")
 
     ignored = subprocess.run(
-        ["git", "check-ignore", "-q", "dependencies.lock"], cwd=ROOT
+        [
+            "git",
+            "check-ignore",
+            "-q",
+            "examples/folotoy-ai-passport/dependencies.lock",
+        ],
+        cwd=ROOT,
     )
     if ignored.returncode == 0:
         errors.append("dependencies.lock must be tracked, not ignored")
@@ -196,8 +202,11 @@ def check_conflict_markers(files: list[Path], errors: list[str]) -> None:
 
 def check_font_configuration(errors: list[str]) -> None:
     """Keep generated compressed fonts renderable in LVGL firmware builds."""
-    font_path = ROOT / "main" / "passport_font_zh_16.c"
-    config_path = ROOT / "sdkconfig.defaults"
+    font_path = (
+        ROOT
+        / "examples/folotoy-ai-passport/main/passport_font_zh_16.c"
+    )
+    config_path = ROOT / "examples/folotoy-ai-passport/sdkconfig.defaults"
     if not font_path.is_file() or not config_path.is_file():
         return
 
@@ -207,7 +216,8 @@ def check_font_configuration(errors: list[str]) -> None:
         r"(?m)^CONFIG_LV_USE_FONT_COMPRESSED=y$", config
     ):
         errors.append(
-            "sdkconfig.defaults: compressed passport font requires "
+            "examples/folotoy-ai-passport/sdkconfig.defaults: compressed "
+            "passport font requires "
             "CONFIG_LV_USE_FONT_COMPRESSED=y"
         )
 
@@ -215,7 +225,10 @@ def check_font_configuration(errors: list[str]) -> None:
 def moonbit_product_lines() -> int:
     """Count nonblank, non-comment MoonBit library and firmware lines."""
     count = 0
-    for source_root in (ROOT / "src", ROOT / "moonbit"):
+    for source_root in (
+        ROOT / "src",
+        ROOT / "examples/folotoy-ai-passport/moonbit",
+    ):
         for path in sorted(source_root.rglob("*.mbt")):
             relative_parts = path.relative_to(source_root).parts
             if (

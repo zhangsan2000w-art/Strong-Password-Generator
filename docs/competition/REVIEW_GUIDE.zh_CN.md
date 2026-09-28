@@ -23,7 +23,7 @@
 
 1. `src/cmd/securegen` 是独立宿主应用，通过 `moonbitlang/core/env` 获取密码学
    随机熵，支持选择策略、自定义长度、PIN 和批量生成。
-2. `moonbit` workspace 成员是 FoloToy 固件适配器，保留设备 C ABI，但把密码、PIN 和
+2. `examples/folotoy-ai-passport/moonbit` 是 FoloToy 固件适配器，保留设备 C ABI，但把密码、PIN 和
    Passphrase 生成委托给 `securegen`。
 
 CLI 不导入固件适配包，可移植包也不导入任何一个应用。

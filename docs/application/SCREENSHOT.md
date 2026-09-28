@@ -38,13 +38,13 @@ followed by 153,600 pixel bytes.
 
 ## Architecture split
 
-- `moonbit/screenshot.mbt` owns the protocol core and is covered by
+- `examples/folotoy-ai-passport/moonbit/screenshot.mbt` owns the protocol core and is covered by
   `moon test`: the command matcher (a state machine equivalent to the
   sliding-window matcher with line-terminator reset), the reply header
   builder, and the snapshot geometry check. The C adapter only passes
   integers and receives bytes through two `passport_screenshot_header_*`
   callbacks.
-- `main/fap_screenshot.c` owns the platform boundary: explicit
+- `examples/folotoy-ai-passport/main/fap_screenshot.c` owns the platform boundary: explicit
   USB-Serial-JTAG driver installation (256-byte RX, 1024-byte TX), a
   priority-3 reader task below the LVGL task, the static 64-byte-aligned
   full-screen snapshot buffer rendered with `lv_snapshot_take_to_draw_buf()`

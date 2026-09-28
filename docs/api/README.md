@@ -44,7 +44,8 @@ packages.
   independent MoonBit consumer that obtains
   cryptographically secure entropy through `moonbitlang/core/env`. It supports
   password profiles, custom lengths, PINs, and multiple generated values.
-- The `moonbit` workspace member is a Native foreign-library adapter used
+- The `examples/folotoy-ai-passport/moonbit` workspace member is a Native
+  foreign-library adapter used
   by the FoloToy AI Passport firmware. Its existing C ABI delegates generation
   to `securegen`.
 

@@ -2,7 +2,7 @@ build/
 sdkconfig
 sdkconfig.old
 managed_components/
-moonbit/_build/
+examples/folotoy-ai-passport/moonbit/_build/
 __pycache__/
 .vscode/
 .idea/

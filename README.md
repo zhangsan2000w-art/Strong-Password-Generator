@@ -72,7 +72,7 @@ share the same engine without depending on ESP-IDF, LVGL, BLE, or FoloToy code.
 
 ## MoonBit-first implementation
 
-The repository now contains 4,209 production `.mbt` lines and 2,069 MoonBit test lines, 6,278 in total. Excluding tests, examples, blank lines, and comments leaves 3,363 effective production MoonBit lines. `tools/check_repo.py` scans packages recursively and independently enforces at least 1,000 effective production lines; tests and examples cannot satisfy that gate.
+The repository now contains 4,335 physical production `.mbt` lines and 2,330 MoonBit test/CLI lines, 6,665 in total. Excluding tests, applications, blank lines, and comments leaves 3,619 effective production MoonBit lines. `tools/check_repo.py` scans both the root library and firmware adapter and independently enforces at least 1,000 effective production lines; tests and applications cannot satisfy that gate.
 
 The production MoonBit modules are compiled into and called by the ESP-IDF firmware. They own:
 
@@ -182,8 +182,8 @@ Flashing the merged image at `0x0` can reset the NVS region. After initial provi
 - The memorable mode bundles the 1,296-entry [EFF Short Wordlist for Passphrases #1](https://www.eff.org/files/2016/09/08/eff_short_wordlist_1.txt), attributed to the Electronic Frontier Foundation under CC BY 3.0 US. The tracked source SHA-256 is `8f5ca830b8bffb6fe39c9736c024a00a6a6411adb3f83a9be8bfeeb6e067ae69`.
 - Build-time code generation packs all words into one NUL-separated constant byte blob with 16-bit offsets. The table remains in Flash and is not loaded wholesale into RAM at startup.
 - The Chinese LVGL glyph subset was generated from Noto Sans SC. Its OFL 1.1 notice is tracked at [`assets/fonts/NotoSansSC-OFL.txt`](assets/fonts/NotoSansSC-OFL.txt). Only ASCII and V1 UI glyphs are compiled into the firmware; the current subset uses 17px, 4bpp, and strong autohinting for heavier small-screen strokes.
-- The subset uses LVGL's compressed font format, so `sdkconfig.defaults` enables `CONFIG_LV_USE_FONT_COMPRESSED=y`. If panels and the generated password render but title, mode, and button labels are blank, rebuild from clean defaults and confirm this option is present in the generated `sdkconfig`.
-- The vendored MoonBit runtime files retain their Apache-2.0 notice in [`components/moonbit_password/RUNTIME_LICENSE.txt`](components/moonbit_password/RUNTIME_LICENSE.txt). Project-authored code remains under the repository MIT license.
+- The subset uses LVGL's compressed font format, so `examples/folotoy-ai-passport/sdkconfig.defaults` enables `CONFIG_LV_USE_FONT_COMPRESSED=y`. If panels and the generated password render but title, mode, and button labels are blank, rebuild from clean defaults and confirm this option is present in the generated `sdkconfig`.
+- The vendored MoonBit runtime files retain their Apache-2.0 notice in [`examples/folotoy-ai-passport/components/moonbit_password/RUNTIME_LICENSE.txt`](examples/folotoy-ai-passport/components/moonbit_password/RUNTIME_LICENSE.txt). Project-authored code remains under the repository MIT license.
 
 ## Design and security
 
@@ -194,4 +194,4 @@ Flashing the merged image at `0x0` can reset the NVS region. After initial provi
 
 ## Verification status
 
-The current tree defines 69 MoonBit tests. MoonBit strict checking, the 2,397-line effective production gate, repository checks, 11 Python firmware-layout tests, and the ESP-IDF 5.5.3 firmware build and merged-image verification passed locally. The local native MoonBit test executable could not be built because the detected legacy Windows C compiler cannot find `stdint.h`; this is an environment failure, not a recorded test pass. BLE pairing and typing, the dual-theme Settings screen, preference persistence across reboot, sound toggle, fonts, buttons, battery behavior, and RNG adapter still require physical-device validation.
+The current tree defines 118 MoonBit tests. Root-library WasmGC tests, CLI JavaScript tests, Native C code generation, the 3,619-line effective-production gate, repository checks, and 18 Python tests pass locally. The ESP-IDF toolchain is not active in the current shell, so the relocated example has not yet received a fresh full firmware build; a pre-migration build is not counted as validation of the new path. BLE pairing and typing, the dual-theme Settings screen, preference persistence across reboot, sound toggle, fonts, buttons, battery behavior, and RNG adapter still require physical-device validation.

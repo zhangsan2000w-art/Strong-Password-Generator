@@ -18,6 +18,7 @@ the [environment bootstrap](environment-setup.md) first.
 source <path-to-esp-idf-v5.5.3>/export.sh
 idf.py --version             # must report ESP-IDF v5.5.3
 ./tools/validate.sh --firmware # preferred: build and verify merged 0x0 image
+cd examples/folotoy-ai-passport
 idf.py set-target esp32c3     # fresh checkout or changed target
 idf.py build                  # optional incremental application build
 idf.py flash monitor          # optional incremental application flash
@@ -29,9 +30,9 @@ changed defaults. Preserve intentional local settings, then run
 `idf.py set-target esp32c3` when the target or tracked defaults must be
 regenerated.
 
-The tracked `dependencies.lock` pins Managed Component resolution. After changing an `idf_component.yml`, regenerate the lock with ESP-IDF 5.5.3, review version changes, and commit it with the manifest. An ordinary build must not leave an unexplained lock-file diff.
+The tracked `examples/folotoy-ai-passport/dependencies.lock` pins Managed Component resolution. After changing an `idf_component.yml`, regenerate the lock with ESP-IDF 5.5.3, review version changes, and commit it with the manifest. An ordinary build must not leave an unexplained lock-file diff.
 
-Firmware validation uses a fresh temporary build directory and an isolated `sdkconfig` generated from the tracked defaults. It does not consume or overwrite a developer's root `sdkconfig`, and it copies only the verified merged image to `build/FoloToy-AI-Passport-full.bin`. The gate also validates the [configured firmware layout](firmware-layout.md): image offsets from `flash_args`, partition-table MD5, bounds and non-overlap, and an application that starts in and fits its configured app partition. User-defined partition layouts are allowed.
+Firmware validation uses a fresh temporary build directory and an isolated `sdkconfig` generated from `examples/folotoy-ai-passport/sdkconfig.defaults`. It does not consume or overwrite a developer's example-local `sdkconfig`, and it copies only the verified merged image to the repository-root `build/FoloToy-AI-Passport-full.bin`. The gate also validates the [configured firmware layout](firmware-layout.md): image offsets from `flash_args`, partition-table MD5, bounds and non-overlap, and an application that starts in and fits its configured app partition. User-defined partition layouts are allowed.
 
 The baseline's hardware-independent logic (mascot animation math and demo-page
 navigation) lives in the MoonBit core and is covered by `moon test`; there is no

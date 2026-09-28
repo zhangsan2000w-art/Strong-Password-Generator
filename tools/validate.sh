@@ -3,6 +3,7 @@ set -euo pipefail
 
 mode="${1:---all}"
 repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+firmware_root="${repo_root}/examples/folotoy-ai-passport"
 python_bin="${PYTHON:-}"
 
 if [[ -z "${python_bin}" ]]; then
@@ -29,13 +30,13 @@ run_static_checks() {
         echo "ERROR: moon is not available; install the MoonBit toolchain first." >&2
         return 1
     fi
-    MOONBIT_NEW_NATIVE=0 moon -C moonbit check --target native --deny-warn
+    MOONBIT_NEW_NATIVE=0 moon -C "${firmware_root}/moonbit" check --target native --deny-warn
     moon test \
         -p zhangsan2000w-art/moonbit-securegen \
         --target wasm-gc --release --deny-warn
     moon run src/cmd/securegen \
         --target js --release -- --profile strict --length 24 >/dev/null
-    MOONBIT_NEW_NATIVE=0 moon -C moonbit test --target native --release
+    MOONBIT_NEW_NATIVE=0 moon -C "${firmware_root}/moonbit" test --target native --release
 
     actionlint_bin="${ACTIONLINT_BIN:-}"
     if [[ -z "${actionlint_bin}" ]]; then
@@ -69,12 +70,13 @@ run_firmware_checks() (
     validation_build_dir="$(mktemp -d /tmp/ai-passport-firmware.XXXXXX)"
     trap 'case "${validation_build_dir}" in /tmp/ai-passport-firmware.*) rm -rf -- "${validation_build_dir}" ;; esac' EXIT
 
-    SDKCONFIG_DEFAULTS="${repo_root}/sdkconfig.defaults" \
+    cd "${firmware_root}"
+    SDKCONFIG_DEFAULTS="${firmware_root}/sdkconfig.defaults" \
         idf.py "${idf_args[@]}" -B "${validation_build_dir}" \
         -D "SDKCONFIG=${validation_build_dir}/sdkconfig" build
     idf.py "${idf_args[@]}" -B "${validation_build_dir}" merge-bin \
         -o "${validation_build_dir}/FoloToy-AI-Passport-full.bin"
-    "${python_bin}" tools/verify_firmware.py "${validation_build_dir}"
+    "${python_bin}" "${repo_root}/tools/verify_firmware.py" "${validation_build_dir}"
     mkdir -p "${repo_root}/build"
     install -m 0644 \
         "${validation_build_dir}/FoloToy-AI-Passport-full.bin" \

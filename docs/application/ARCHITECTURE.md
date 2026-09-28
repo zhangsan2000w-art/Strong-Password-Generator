@@ -44,13 +44,13 @@ MoonBit owns the product rules. C owns the platform boundary. No MoonBit core mo
 
 The state is packed into a `UInt64` so the C adapter treats it as an opaque value. State transitions clear the one-shot action field before processing each input. A generation action can therefore be repeated intentionally by pressing `OK` again on the generate row.
 
-There are 3,363 effective production MoonBit lines (tests, examples, blanks, and comments excluded), 4,209 physical production lines, and 2,069 MoonBit test lines. Repository checks scan packages recursively and prevent effective production MoonBit from dropping below 1,000 lines.
+There are 3,619 effective production MoonBit lines (tests, applications, blanks, and comments excluded), 4,335 physical production lines, and 2,330 MoonBit test/CLI lines. Repository checks scan the root library and firmware adapter and prevent effective production MoonBit from dropping below 1,000 lines.
 
 ## Platform integration
 
 `tools/generate_moonbit.py` invokes `moonc build-package` separately for the platform-neutral `securegen` library and the Native firmware adapter, then links both cores to portable C. ESP-IDF compiles the resulting C with the vendored MoonBit runtime. Test files, the CLI application, and host stubs are excluded from firmware code generation.
 
-`src/cmd/securegen` imports the root `moonbit-securegen` package directly and runs as a JavaScript-target CLI. It is an independent consumer with profile, length, PIN, and batch options, and gets cryptographic entropy from `moonbitlang/core/env`. The firmware adapter is a separate workspace module and injects hardware entropy through C FFI.
+`src/cmd/securegen` imports the root `moonbit-securegen` package directly and runs as a JavaScript-target CLI. It is an independent consumer with profile, length, PIN, and batch options, and gets cryptographic entropy from `moonbitlang/core/env`. The firmware adapter under `examples/folotoy-ai-passport/moonbit` is a separate workspace module and injects hardware entropy through C FFI.
 
 The FFI surface contains only integer values, an opaque 64-bit state, one `UInt` random callback, character output, and dictionary lookup. View, battery, and sound functions also export primitive integers, keeping LVGL, I2C, and ES8311 types outside MoonBit. The application can move to another board by replacing hardware calls without rewriting product policy.
 

@@ -6,19 +6,19 @@
 
 This is the board-level context for AI coding assistants and new developers. It records confirmed hardware facts, software architecture, invariants, extension points, and acceptance methods; it does not replace component datasheets.
 
-> For firmware behavior, use `components/bsp/include/bsp_pins.h` and the BSP implementation as the source of truth. Do not copy assumptions from a generic ESP32-C3 board.
+> For firmware behavior, use `examples/folotoy-ai-passport/components/bsp/include/bsp_pins.h` and the BSP implementation as the source of truth. Do not copy assumptions from a generic ESP32-C3 board.
 
 Document scope:
 
 - Applicable target: the ESP32-C3 FoloToy AI Passport mapping implemented by this repository.
-- Product specifications are in [specifications.md](specifications.md); firmware behavior follows `bsp_pins.h`, BSP implementations, `sdkconfig.defaults`, `partitions.csv`, and the demo code.
+- Product specifications are in [specifications.md](specifications.md); firmware behavior follows `bsp_pins.h`, BSP implementations, and the configuration under `examples/folotoy-ai-passport`.
 - Code audit date: 2026-08-26.
 
 ## 1. Before changing hardware-facing code
 
 1. Read `AGENTS.md`, this guide, and the affected BSP header/implementation.
 2. Run `git status --short --branch` and preserve unrelated changes.
-3. Put reusable hardware behavior in `components/bsp`; keep menu, animation, product interaction, and validation pages in `main`.
+3. Put reusable hardware behavior in `examples/folotoy-ai-passport/components/bsp`; keep product interaction in the example's `main` directory.
 4. Keep pins, I2C addresses, and panel dimensions in `bsp_pins.h` only.
 5. Keep hardware-facing changes within the product specification and explicit BSP definitions.
 
@@ -97,7 +97,7 @@ app_main
   └─ LVGL menu and independent demo pages
 ```
 
-Display/LVGL is a hard dependency. Buttons, audio, and battery are soft dependencies whose pages show `[FAIL]` while other pages remain available. Public BSP APIs are under `components/bsp/include/`. Successful display, button, audio, and LVGL initialization is idempotent. Display, button, and audio partial failures release resources acquired by the BSP; failed LVGL display registration deinitializes its port. The caller can correct the fault and retry, while an incomplete lower-level rollback is reported and prevents a handle from being overwritten. There is no universal BSP deinitialization API.
+Display/LVGL is a hard dependency. Buttons, audio, and battery are soft dependencies whose pages show `[FAIL]` while other pages remain available. Public BSP APIs are under `examples/folotoy-ai-passport/components/bsp/include/`. Successful display, button, audio, and LVGL initialization is idempotent. Display, button, and audio partial failures release resources acquired by the BSP; failed LVGL display registration deinitializes its port. The caller can correct the fault and retry, while an incomplete lower-level rollback is reported and prevents a handle from being overwritten. There is no universal BSP deinitialization API.
 
 Button callbacks run in the shared `esp_timer` task. They only enqueue input and return; the demo lifecycle task handles navigation and starts or stops slow services without holding the LVGL lock. Page exit first completes a bounded producer stop, then deletes timers and UI objects while holding the lock. Audio and light-sleep workers use cooperative cancellation and an explicit exit handshake rather than forced task deletion. The low-power worker suspends ES8311 before either sleep mode and resumes it after light sleep; deep-sleep wake restarts the application and follows normal BSP initialization.
 
@@ -181,7 +181,7 @@ Accurate production SOC requires the cell parameters, CW2017 datasheet/vendor pr
 
 ## 10. Flash, console, and memory
 
-The default custom-firmware baseline uses 8 MB Flash. `sdkconfig.defaults` fixes the image to 8 MB and disables automatic flash-size header rewriting. By default, `partitions.csv` defines only 24 KB NVS, 4 KB PHY data, and one factory application from `0x10000` through the end of Flash (`0x7F0000` bytes). It has no OTA, device-identity, or unused reserved partition. User firmware may replace this default with another valid 8 MB partition layout. A detected non-8-MB device does not match this hardware baseline; identify the board and flash part before changing the project default.
+The default custom-firmware baseline uses 8 MB Flash. `examples/folotoy-ai-passport/sdkconfig.defaults` fixes the image to 8 MB and disables automatic flash-size header rewriting. The adjacent `partitions.csv` defines only 24 KB NVS, 4 KB PHY data, and one factory application from `0x10000` through the end of Flash (`0x7F0000` bytes). It has no OTA, device-identity, or unused reserved partition. User firmware may replace this default with another valid 8 MB partition layout. A detected non-8-MB device does not match this hardware baseline; identify the board and flash part before changing the project default.
 
 Writing the merged image at `0x0` may reset NVS because gaps are padded in the
 single file. Use segmented `idf.py flash` when stored application state must be
@@ -195,7 +195,7 @@ Review at least the 24 KB LVGL pool, 9.6 KB LCD DMA buffer, I2S DMA, 96 KB demo 
 
 For reusable hardware capability, add `bsp_<feature>.h` and its implementation, keep constants in `bsp_pins.h`, update component CMake/dependencies, return `esp_err_t`, log actionable pin/address context, and document threading, blocking, ownership, initialization, and failure behavior.
 
-For a validation page, implement `enter`, `exit`, and `key` in `main/demo_<feature>.c`; add optional `start`/`stop` hooks for slow services or page-owned workers, declare it in `demo.h`, list it in CMake, and register it in `DEMOS[]`. Create/load a page-owned screen in `enter`, start slow work without the LVGL lock, stop producers with a bounded handshake, then delete timers and the screen in `exit`. Keep UI text in English, lock short LVGL updates, and preserve global OK-long-press return behavior.
+For a validation page, implement `enter`, `exit`, and `key` in `examples/folotoy-ai-passport/main/demo_<feature>.c`; add optional `start`/`stop` hooks for slow services or page-owned workers, declare it in `demo.h`, list it in CMake, and register it in `DEMOS[]`. Create/load a page-owned screen in `enter`, start slow work without the LVGL lock, stop producers with a bounded handshake, then delete timers and the screen in `exit`. Keep UI text in English, lock short LVGL updates, and preserve global OK-long-press return behavior.
 
 Menu initialization status arrays implicitly follow `DEMOS[]` order; update and review them together.
 
@@ -217,7 +217,7 @@ idf.py reconfigure
 idf.py build
 ```
 
-The Component Manager resolves dependencies from `components/bsp/idf_component.yml`. Do not edit `managed_components/`. `dependencies.lock` is tracked and must remain reproducible under ESP-IDF 5.5.3. Generated `sdkconfig` does not automatically absorb every changed default; preserve intentional settings and use `idf.py set-target esp32c3` when configuration must be regenerated. Use `idf.py fullclean` only to remove stale build output.
+The Component Manager resolves dependencies from `examples/folotoy-ai-passport/components/bsp/idf_component.yml`. Do not edit generated `managed_components/`. The example's `dependencies.lock` is tracked and must remain reproducible under ESP-IDF 5.5.3. Generated `sdkconfig` does not automatically absorb every changed default; preserve intentional settings and use `idf.py set-target esp32c3` from the example directory when configuration must be regenerated. Use `idf.py fullclean` only to remove stale build output.
 
 For an intentional incremental flash, use the native USB Serial/JTAG port,
 commonly `/dev/ttyACM0` on Linux:

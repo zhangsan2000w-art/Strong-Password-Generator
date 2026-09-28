@@ -4,10 +4,8 @@
 /build/
 /build-*/
 /assets/
-/components/
-/main/
+/examples/folotoy-ai-passport/
 /managed_components/
-/moonbit/
 /tests/
 /tools/
 /skills/

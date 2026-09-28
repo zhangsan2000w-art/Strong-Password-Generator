@@ -12,14 +12,14 @@ This guide is for AI coding assistants. `AGENTS.md` is the only mandatory starti
 2. Run `git status --short --branch` and preserve existing changes.
 3. Read affected public headers, implementations, and neighboring code. Do not infer this board's behavior from a generic ESP32-C3 board.
 4. Search `origin/demo/*` for a relevant example and reuse only applicable design ideas.
-5. Decompose the request into inputs, outputs, state, tasks, persistence, memory budget, and failure behavior before choosing `main` or `components/bsp`.
+5. Decompose the request into inputs, outputs, state, tasks, persistence, memory budget, and failure behavior before choosing the firmware example's `main` or `components/bsp` boundary.
 6. Run focused checks while iterating and `./tools/validate.sh` before delivery. Keep hardware checks explicit.
 
 ## Source-of-truth priority
 
 ```text
 product specification / measurement
-  > components/bsp/include/bsp_pins.h
+  > examples/folotoy-ai-passport/components/bsp/include/bsp_pins.h
   > BSP public headers and implementation
   > docs/hardware-design/AI_HARDWARE_DEVELOPMENT_GUIDE.md
   > README and demo applications
@@ -31,13 +31,13 @@ If a task requires a board revision, wiring, polarity, register value, or GPIO a
 
 ```text
 requirement
-  └─ main/                         pages, state machines, animation, app tasks, assets
-      └─ components/bsp/include/  stable board APIs
-          └─ components/bsp/src/  buses, devices, and driver details
+  └─ examples/folotoy-ai-passport/main/             pages and app tasks
+      └─ examples/folotoy-ai-passport/components/bsp/include/  stable board APIs
+          └─ examples/folotoy-ai-passport/components/bsp/src/  drivers
               └─ bsp_pins.h       pin and hardware-parameter source of truth
 ```
 
-A new page implements the `enter`, `exit`, and `key` interface in `main/demo_<feature>.c`, is declared in `main/demo.h`, added to `main/CMakeLists.txt`, and registered in `main.c`. Extend menu initialization and failure degradation for new optional peripherals.
+A new page implements the `enter`, `exit`, and `key` interface in `examples/folotoy-ai-passport/main/demo_<feature>.c`, is declared in that directory's `demo.h`, added to its `CMakeLists.txt`, and registered in `main.c`. Extend menu initialization and failure degradation for new optional peripherals.
 
 Only reusable hardware capabilities belong in the BSP. Document blocking behavior, task context, ownership, failures, and initialization order. Pins and I2C addresses belong only in `bsp_pins.h`.
 

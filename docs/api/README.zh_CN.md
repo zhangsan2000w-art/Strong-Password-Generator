@@ -39,7 +39,8 @@ match @securegen.generate_password_with_source(policy, random) {
 - [`../../src/cmd/securegen`](../../src/cmd/securegen/main.mbt) 是独立的
   MoonBit 消费者，通过 `moonbitlang/core/env`
   获取密码学安全随机源，支持密码策略、自定义长度、PIN 和批量生成。
-- `moonbit` workspace 成员是供 FoloToy AI Passport 固件使用的 Native foreign-library
+- `examples/folotoy-ai-passport/moonbit` workspace 成员是供 FoloToy AI Passport
+  固件使用的 Native foreign-library
   适配器；现有 C ABI 已把生成工作委托给 `securegen`。
 
 运行可移植包测试和示例：

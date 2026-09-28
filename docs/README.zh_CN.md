@@ -7,7 +7,7 @@ FoloToy AI Passport 是一个开放式可穿戴 AI 硬件，本仓库是这款 A
 这个仓库的组织方式是：
 
 - `main` 是最小但完整的可运行基线，也是当前硬件能力的可执行说明；
-- `components/bsp` 隔离板级差异，为应用提供稳定 API；
+- `examples/folotoy-ai-passport/components/bsp` 隔离板级差异，为固件示例提供稳定 API；
 - `demo/*` 分支展示从需求到成品的不同实现路径；
 - AI 开发约定见 [`AGENTS.zh_CN.md`](../AGENTS.zh_CN.md) 与 [`docs/development/ai-guide.zh_CN.md`](development/ai-guide.zh_CN.md)；完整硬件上下文和故障知识见 [`docs/hardware-design/AI_HARDWARE_DEVELOPMENT_GUIDE.zh_CN.md`](hardware-design/AI_HARDWARE_DEVELOPMENT_GUIDE.zh_CN.md)；
 - 构建结果与真机结果分开记录，禁止把"编译通过"描述成"硬件验证通过"。
@@ -28,7 +28,7 @@ FoloToy AI Passport 是一个开放式可穿戴 AI 硬件，本仓库是这款 A
 | 共享总线 | ES8311 与 CW2017 共用 I2C0 | `bsp_i2c_*` | 所有设备复用 BSP 持有的总线；不能为扫描或新设备再创建同端口总线 |
 | 日志与烧录 | ESP32-C3 原生 USB Serial/JTAG | ESP-IDF console | GPIO18/19 保留给 USB；UART0 默认 TX GPIO21 与背光冲突 |
 
-所有引脚、地址、面板参数和按键电压窗口只在 [`components/bsp/include/bsp_pins.h`](../components/bsp/include/bsp_pins.h) 定义。应用代码不得复制这些常量。完整引脚表、面板初始化、ADC 阈值、I2C 地址规则、音频时钟和内存说明见 [AI 硬件开发指南](hardware-design/AI_HARDWARE_DEVELOPMENT_GUIDE.zh_CN.md)。
+所有引脚、地址、面板参数和按键电压窗口只在 [`examples/folotoy-ai-passport/components/bsp/include/bsp_pins.h`](../examples/folotoy-ai-passport/components/bsp/include/bsp_pins.h) 定义。应用代码不得复制这些常量。完整引脚表、面板初始化、ADC 阈值、I2C 地址规则、音频时钟和内存说明见 [AI 硬件开发指南](hardware-design/AI_HARDWARE_DEVELOPMENT_GUIDE.zh_CN.md)。
 
 应用也可以使用 ESP-IDF 提供的定时器、FreeRTOS 任务和内部 Flash/NVS；番茄钟分支提供了 NVS 示例。Wi-Fi 和 Bluetooth LE 仍是 ESP-IDF 应用服务而非 BSP API：其菜单页面仅在打开时初始化对应协议栈、退出时释放。`demo/claude-buddy-port` 仍是更完整的 BLE 应用架构参考，不能替代对当前板卡天线、射频表现、功耗和共存行为的实测。默认自定义固件基线使用 8 MB Flash，只包含 NVS、PHY data，以及占用剩余空间的单个 factory-app 分区；用户固件可以替换成其它合法的 8 MB 布局。
 
@@ -45,7 +45,7 @@ FoloToy AI Passport 是一个开放式可穿戴 AI 硬件，本仓库是这款 A
 使用三个实体按键和 240×320 屏幕，记录保存在掉电不丢失的存储中。
 从 `main` 开始，创建 `feature/*` 分支并在该分支上开发。
 遵守 AGENTS.md 和 docs/hardware-design/AI_HARDWARE_DEVELOPMENT_GUIDE.md；先查找相关 demo 分支与 plays/ 应用，
-保持硬件逻辑在 components/bsp、应用逻辑在 main，完成可运行实现与测试，
+保持硬件逻辑在固件示例的 components/bsp、应用逻辑在其 main 目录，完成可运行实现与测试，
 最后分别报告构建结果、未执行的真机项目和逐项验收方法。
 ```
 
@@ -94,16 +94,18 @@ git switch -c feature/my-passport-app
 ## 项目结构
 
 ```text
-components/bsp/include/  BSP 公开 API 与 bsp_pins.h 硬件事实
-components/bsp/src/      显示、按键、音频、电池、共享 I2C 实现
-main/                    最小菜单、LVGL UI 与独立硬件演示页
+examples/folotoy-ai-passport/
+  components/bsp/include/  BSP 公开 API 与 bsp_pins.h 硬件事实
+  components/bsp/src/      显示、按键、音频、电池、共享 I2C 实现
+  main/                    LVGL 密码生成器应用
+  moonbit/                 消费根库的 Native 固件适配模块
 tests/                   可脱离硬件运行的轻量逻辑测试源
 tools/                   本地与 CI 共用的验证及固件校验脚本
 docs/                    项目说明、变更记录、工程/协作规范与设计参考
 .github/                 GitHub 社区文档、PR 模板、Issue Form 与 CI 工作流
-sdkconfig.defaults       ESP32-C3、USB console、Flash、LVGL 默认配置
-partitions.csv           应用与设备身份保护分区布局
-dependencies.lock        可复现的 ESP-IDF Managed Component 解析结果
+  sdkconfig.defaults       ESP32-C3、USB console、Flash、LVGL 默认配置
+  partitions.csv           固件分区布局
+  dependencies.lock        可复现的 ESP-IDF Managed Component 解析结果
 AGENTS.md                AI agent 必读入口（与 AGENTS.zh_CN.md 配对）
 CLAUDE.md                Claude Code 指向 AGENTS.md 的入口（含中文配对）
 LICENSE                  仓库许可证

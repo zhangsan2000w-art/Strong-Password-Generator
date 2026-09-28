@@ -7,7 +7,7 @@ FoloToy AI Passport is open wearable AI hardware. This repository is the develop
 The repository is organized around the following principles:
 
 - `main` is the smallest complete runnable baseline and an executable description of the current hardware capabilities.
-- `components/bsp` isolates board-level details and exposes stable APIs to applications.
+- `examples/folotoy-ai-passport/components/bsp` isolates board-level details and exposes stable APIs to the firmware example.
 - `demo/*` branches show different paths from a product requirement to a working implementation.
 - Development conventions for AI assistants live in [`AGENTS.md`](../AGENTS.md) and [`docs/development/ai-guide.md`](development/ai-guide.md); the complete hardware context and troubleshooting knowledge is in [`docs/hardware-design/AI_HARDWARE_DEVELOPMENT_GUIDE.md`](hardware-design/AI_HARDWARE_DEVELOPMENT_GUIDE.md).
 - Build results and physical-device results are reported separately. A successful build must never be presented as successful hardware validation.
@@ -28,7 +28,7 @@ The table below describes the application capabilities implemented by the curren
 | Shared bus | ES8311 and CW2017 share I2C0 | `bsp_i2c_*` | Every device must reuse the bus owned by the BSP; do not create another bus on the same port for scanning or a new device |
 | Logging and flashing | Native ESP32-C3 USB Serial/JTAG | ESP-IDF console | GPIO18/19 are reserved for USB; the default UART0 TX on GPIO21 conflicts with the backlight |
 
-All pins, addresses, panel parameters, and button voltage windows are defined only in [`components/bsp/include/bsp_pins.h`](../components/bsp/include/bsp_pins.h). Application code must not duplicate these constants. See the [AI Hardware Development Guide](hardware-design/AI_HARDWARE_DEVELOPMENT_GUIDE.md) for the complete pin map, panel initialization, ADC thresholds, I2C addressing rules, audio clocks, and memory details.
+All pins, addresses, panel parameters, and button voltage windows are defined only in [`examples/folotoy-ai-passport/components/bsp/include/bsp_pins.h`](../examples/folotoy-ai-passport/components/bsp/include/bsp_pins.h). Application code must not duplicate these constants. See the [AI Hardware Development Guide](hardware-design/AI_HARDWARE_DEVELOPMENT_GUIDE.md) for the complete pin map, panel initialization, ADC thresholds, I2C addressing rules, audio clocks, and memory details.
 
 Applications may also use ESP-IDF timers, FreeRTOS tasks, and internal Flash/NVS; the Pomodoro branch contains an NVS example. Wi-Fi and Bluetooth LE remain ESP-IDF application services rather than BSP APIs: their menu pages initialize each stack only while open and release it on exit. `demo/claude-buddy-port` remains a fuller BLE application architecture reference, not a substitute for measuring the current board's antenna, RF performance, power consumption, and coexistence behavior. The default custom-firmware baseline uses 8 MB Flash with only NVS, PHY data, and one factory-app partition spanning the remaining space; user firmware may replace it with another valid 8 MB layout.
 
@@ -45,7 +45,7 @@ Build an offline habit-tracking application for FoloToy AI Passport.
 Use the three physical buttons and the 240×320 display, and preserve records across power loss.
 Start from `main`, create a `feature/*` branch, and develop the application there.
 Follow AGENTS.md and docs/hardware-design/AI_HARDWARE_DEVELOPMENT_GUIDE.md. Inspect relevant demo branches and plays/ applications first,
-keep hardware logic in components/bsp and application logic in main, deliver a runnable
+keep hardware logic in the firmware example's components/bsp and application logic in its main directory, deliver a runnable
 implementation with tests, and report the build result, unexecuted device checks, and exact
 on-device acceptance steps separately.
 ```
@@ -96,16 +96,18 @@ Example branches may change the same menu, configuration, or driver in incompati
 ## Project structure
 
 ```text
-components/bsp/include/  Public BSP APIs and bsp_pins.h hardware facts
-components/bsp/src/      Display, button, audio, battery, and shared-I2C implementations
-main/                    Minimal menu, LVGL UI, and independent hardware demo pages
+examples/folotoy-ai-passport/
+  components/bsp/include/  Public BSP APIs and bsp_pins.h hardware facts
+  components/bsp/src/      Display, button, audio, battery, shared-I2C implementations
+  main/                    LVGL password-generator application
+  moonbit/                 Native firmware adapter consuming the root library
 tests/                   Lightweight logic tests that can run without hardware
 tools/                   Shared local/CI validation and firmware verification scripts
 docs/                    Project docs, changelog, engineering/contribution rules, and design references
 .github/                 GitHub community files, PR template, issue forms, and CI workflows
-sdkconfig.defaults       ESP32-C3, USB console, Flash, and LVGL defaults
-partitions.csv           App plus protected identity layout
-dependencies.lock        Reproducible ESP-IDF Managed Component resolution
+  sdkconfig.defaults       ESP32-C3, USB console, Flash, and LVGL defaults
+  partitions.csv           Firmware partition layout
+  dependencies.lock        Reproducible ESP-IDF Managed Component resolution
 AGENTS.md                Mandatory AI-agent entry point (paired with AGENTS.zh_CN.md)
 CLAUDE.md                Claude Code pointer to AGENTS.md (paired Chinese version)
 LICENSE                  Repository license

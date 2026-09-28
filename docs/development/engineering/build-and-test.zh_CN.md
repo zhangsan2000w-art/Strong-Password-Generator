@@ -17,6 +17,7 @@
 source <ESP-IDF-v5.5.3-路径>/export.sh
 idf.py --version             # 必须输出 ESP-IDF v5.5.3
 ./tools/validate.sh --firmware # 优先：编译并验证 0x0 合并固件
+cd examples/folotoy-ai-passport
 idf.py set-target esp32c3     # 配置目标芯片（fresh checkout 后/换 target 后运行）
 idf.py build                  # 可选：增量 app 编译
 idf.py flash monitor          # 可选：增量 app 烧录
@@ -27,9 +28,9 @@ idf.py fullclean              # 只清空过期生成状态（勿用于清理用
 target 或已跟踪 defaults 时，先保留有意的本地设置，再运行
 `idf.py set-target esp32c3`。
 
-仓库提交 `dependencies.lock` 以固定 ESP-IDF Managed Components 的解析结果。修改 `idf_component.yml` 后必须使用 ESP-IDF 5.5.3 重新生成锁文件、review 版本变化并与 manifest 一起提交；普通构建不应产生未提交的锁文件差异。
+仓库提交 `examples/folotoy-ai-passport/dependencies.lock` 以固定 ESP-IDF Managed Components 的解析结果。修改 `idf_component.yml` 后必须使用 ESP-IDF 5.5.3 重新生成锁文件、review 版本变化并与 manifest 一起提交；普通构建不应产生未提交的锁文件差异。
 
-固件门禁使用全新的临时构建目录，并从仓库 `sdkconfig.defaults` 生成隔离的 `sdkconfig`。它不会读取或覆盖开发者根目录的 `sdkconfig`，只把验证通过的合并镜像复制到 `build/FoloToy-AI-Passport-full.bin`。门禁同时验证[当前配置的固件布局](firmware-layout.zh_CN.md)：从 `flash_args` 读取镜像偏移，检查分区表 MD5、边界和不重叠，并确认应用从所配置的 app 分区起点开始且未超出分区。允许用户自定义分区布局。
+固件门禁使用全新的临时构建目录，并从 `examples/folotoy-ai-passport/sdkconfig.defaults` 生成隔离的 `sdkconfig`。它不会读取或覆盖示例目录中的开发者 `sdkconfig`，只把验证通过的合并镜像复制到仓库根 `build/FoloToy-AI-Passport-full.bin`。门禁同时验证[当前配置的固件布局](firmware-layout.zh_CN.md)：从 `flash_args` 读取镜像偏移，检查分区表 MD5、边界和不重叠，并确认应用从所配置的 app 分区起点开始且未超出分区。允许用户自定义分区布局。
 
 仓库的轻量逻辑（吉祥物动画数学、演示页导航）在 MoonBit 核心里，由 `moon test`
 覆盖，没有单独的 C 侧逻辑测试。
