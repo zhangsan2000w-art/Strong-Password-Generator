@@ -25,6 +25,7 @@ set(MOONBIT_SOURCES
     "${MOONBIT_SOURCE_DIR}/state.mbt"
     "${MOONBIT_SOURCE_DIR}/strength.mbt"
     "${MOONBIT_SOURCE_DIR}/ui_pixel_math.mbt"
+    "${MOONBIT_SOURCE_DIR}/ui_text.mbt"
     "${MOONBIT_SOURCE_DIR}/view_model.mbt"
 )
 

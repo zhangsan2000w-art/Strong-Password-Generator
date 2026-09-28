@@ -14,6 +14,7 @@
 #include "settings_screen.h"
 #include "settings_store.h"
 #include "ui_pixel.h"
+#include "ui_text.h"
 
 LV_FONT_DECLARE(passport_font_zh_16);
 
@@ -40,19 +41,9 @@ enum {
     BLE_ACTION_RECONNECT = 2,
 };
 
-enum {
-    PARAMETER_HIDDEN = 0,
-    PARAMETER_RANDOM_LENGTH = 1,
-    PARAMETER_LOWERCASE = 2,
-    PARAMETER_UPPERCASE = 3,
-    PARAMETER_DIGITS = 4,
-    PARAMETER_SYMBOLS = 5,
-    PARAMETER_WORD_COUNT = 6,
-    PARAMETER_CAPITALIZE = 7,
-    PARAMETER_COMPLETE_WORD = 8,
-    PARAMETER_SEPARATOR = 9,
-    PARAMETER_PIN_LENGTH = 10,
-};
+/* 参数槽位的 kind 由 MoonBit 的 moonbit/view_model.mbt 决定（parameter_* 常量）；
+ * 这里只用到“该槽位隐藏”这一种。 */
+enum { PARAMETER_HIDDEN = 0 };
 
 static lv_obj_t *s_screen;
 static lv_obj_t *s_mode_panels[3];
@@ -78,6 +69,16 @@ static bool s_send_focused;
 static bool s_password_reveal_started;
 static uint32_t s_password_reveal_started_at;
 static int s_password_display_mode;
+
+/*
+ * 结果区状态句与其余界面文案都由 MoonBit 组装（moonbit/ui_text.mbt），UTF-8 字节
+ * 经 passport_ui_text_* 落到 main/ui_text.c 的共享缓冲。构建失败（超出缓冲）时
+ * 保留上一帧，不显示半截句子。
+ */
+static void set_text(lv_obj_t *label, const char *text)
+{
+    if (text) lv_label_set_text(label, text);
+}
 
 static int state_value(int field)
 {
@@ -157,10 +158,13 @@ static void refresh_battery(lv_timer_t *timer)
 
     if (passport_moonbit_battery_available(reading)) {
         int percent = passport_moonbit_battery_percent(reading);
-        lv_label_set_text_fmt(
+        set_text(
             s_battery_label,
-            passport_moonbit_battery_estimated(reading) ? "~%d%%" : "%d%%",
-            percent
+            ui_text(
+                UI_TEXT_BATTERY,
+                percent,
+                passport_moonbit_battery_estimated(reading)
+            )
         );
         lv_obj_set_style_text_color(
             s_battery_label,
@@ -168,14 +172,13 @@ static void refresh_battery(lv_timer_t *timer)
             0
         );
     } else {
-        lv_label_set_text(s_battery_label, "--%");
+        set_text(s_battery_label, ui_text(UI_TEXT_BATTERY_UNAVAILABLE, 0, 0));
         lv_obj_set_style_text_color(s_battery_label, lv_color_hex(UI_MUTED), 0);
     }
 }
 
 static void refresh_parameters(void)
 {
-    static const char *separator_text[] = {"-", ".", "_"};
     for (int i = 0; i < 5; i++) {
         lv_obj_add_flag(s_parameter_labels[i], LV_OBJ_FLAG_HIDDEN);
         set_focus_style(s_parameter_labels[i], false, false);
@@ -183,40 +186,9 @@ static void refresh_parameters(void)
         int value = passport_moonbit_view_parameter_value(s_state, i);
         if (kind == PARAMETER_HIDDEN) continue;
         configure_parameter_label(i);
-        switch (kind) {
-        case PARAMETER_RANDOM_LENGTH:
-            lv_label_set_text_fmt(s_parameter_labels[i], "长度 %d", value);
-            break;
-        case PARAMETER_LOWERCASE:
-            lv_label_set_text_fmt(s_parameter_labels[i], "小写 %s", value ? "ON" : "OFF");
-            break;
-        case PARAMETER_UPPERCASE:
-            lv_label_set_text_fmt(s_parameter_labels[i], "大写 %s", value ? "ON" : "OFF");
-            break;
-        case PARAMETER_DIGITS:
-            lv_label_set_text_fmt(s_parameter_labels[i], "数字 %s", value ? "ON" : "OFF");
-            break;
-        case PARAMETER_SYMBOLS:
-            lv_label_set_text_fmt(s_parameter_labels[i], "符号 %s", value ? "ON" : "OFF");
-            break;
-        case PARAMETER_WORD_COUNT:
-            lv_label_set_text_fmt(s_parameter_labels[i], "单词数 %d", value);
-            break;
-        case PARAMETER_CAPITALIZE:
-            lv_label_set_text_fmt(s_parameter_labels[i], "首字母 %s", value ? "ON" : "OFF");
-            break;
-        case PARAMETER_COMPLETE_WORD:
-            lv_label_set_text_fmt(s_parameter_labels[i], "完整单词 %s", value ? "ON" : "OFF");
-            break;
-        case PARAMETER_SEPARATOR:
-            lv_label_set_text_fmt(s_parameter_labels[i], "分隔符 %s", separator_text[value]);
-            break;
-        case PARAMETER_PIN_LENGTH:
-            lv_label_set_text_fmt(s_parameter_labels[i], "PIN 位数 %d", value);
-            break;
-        default:
-            break;
-        }
+        set_text(
+            s_parameter_labels[i], ui_text(UI_TEXT_PARAM_LABEL, kind, value)
+        );
         set_focus_style(
             s_parameter_labels[i],
             passport_moonbit_view_parameter_selected(s_state, i) != 0,
@@ -241,7 +213,7 @@ static void refresh_result(void)
         "", "长度过短", "缺少小写", "缺少大写", "缺少数字", "缺少符号", "配置无效"
     };
     if (result == RESULT_FAILURE) {
-        lv_label_set_text(s_status_label, "生成失败 请重试");
+        set_text(s_status_label, ui_text(UI_TEXT_RESULT_FAILURE, 0, 0));
         lv_obj_set_style_text_color(s_status_label, lv_color_hex(UI_RED), 0);
         lv_label_set_text(s_result_label, "");
         return;
@@ -258,7 +230,10 @@ static void refresh_result(void)
             lv_obj_set_style_text_color(s_status_label, lv_color_hex(UI_LIME), 0);
         }
     } else {
-        lv_label_set_text(s_status_label, result == RESULT_SUCCESS ? "已生成" : "");
+        set_text(
+            s_status_label,
+            result == RESULT_SUCCESS ? ui_text(UI_TEXT_RESULT_DONE, 0, 0) : ""
+        );
         lv_obj_set_style_text_color(s_status_label, lv_color_hex(UI_LIME), 0);
     }
     if (result == RESULT_SUCCESS) {
@@ -277,7 +252,7 @@ static void refresh_result(void)
             lv_label_set_text(s_result_label, mask);
         }
     } else {
-        lv_label_set_text(s_result_label, "OK -> Generate");
+        set_text(s_result_label, ui_text(UI_TEXT_RESULT_PLACEHOLDER, 0, 0));
     }
 }
 
@@ -305,38 +280,15 @@ static void refresh_ble(lv_timer_t *timer)
     int status = passport_moonbit_ble_keyboard_status(
         password_ble_keyboard_status()
     );
-    switch (status) {
-    case PASSWORD_BLE_STARTING:
-        lv_label_set_text(s_ble_label, "BLE 启动中");
-        break;
-    case PASSWORD_BLE_ADVERTISING:
-        lv_label_set_text(s_ble_label, "BLE: 配对 FoloPassKey");
-        break;
-    case PASSWORD_BLE_PAIRING:
-        lv_label_set_text(s_ble_label, "BLE 连接中 无需配对码");
-        break;
-    case PASSWORD_BLE_CONNECTED:
-        lv_label_set_text(s_ble_label, "BLE 已连接 可发送");
-        break;
-    case PASSWORD_BLE_SENDING:
-        lv_label_set_text(s_ble_label, "正在输入密码...");
-        break;
-    case PASSWORD_BLE_SENT:
-        lv_label_set_text(s_ble_label, "密码已发送");
-        break;
-    case PASSWORD_BLE_RELEASED:
-        lv_label_set_text(s_ble_label, "已发送，系统键盘已恢复");
-        break;
-    default:
-        lv_label_set_text(s_ble_label, "BLE 不可用");
-        break;
-    }
+    set_text(s_ble_label, ui_text(UI_TEXT_BLE_STATUS, status, 0));
 
     int ble_action = passport_moonbit_ble_keyboard_action(s_state, status);
     bool enabled = ble_action != 0;
-    lv_label_set_text(
+    set_text(
         s_send_label,
-        ble_action == BLE_ACTION_RECONNECT ? "重新连接" : "发送"
+        ui_text(
+            UI_TEXT_SEND_BUTTON, ble_action == BLE_ACTION_RECONNECT ? 1 : 0, 0
+        )
     );
     lv_obj_set_style_bg_color(
         s_send_panel,
@@ -369,16 +321,20 @@ static void refresh_ui(void)
     refresh_result();
 
     int entropy_x10 = passport_moonbit_entropy_x10(s_state);
-    lv_label_set_text_fmt(s_entropy_label, "H %d.%d bit", entropy_x10 / 10, entropy_x10 % 10);
+    set_text(s_entropy_label, ui_text(UI_TEXT_ENTROPY, entropy_x10, 0));
     int strength = passport_moonbit_strength(s_state);
     lv_obj_set_style_text_color(
         s_entropy_label,
         lv_color_hex(strength <= 1 ? UI_RED : (strength == 2 ? UI_ORANGE : UI_SKY_DARK)),
         0
     );
-    lv_label_set_text(
+    set_text(
         s_generate_label,
-        state_value(FIELD_RESULT) == RESULT_SUCCESS ? "重新生成" : "生成"
+        ui_text(
+            UI_TEXT_GENERATE_BUTTON,
+            state_value(FIELD_RESULT) == RESULT_SUCCESS ? 1 : 0,
+            0
+        )
     );
     bool generate_focused = passport_moonbit_view_generate_focused(s_state) != 0;
     lv_obj_set_style_bg_color(

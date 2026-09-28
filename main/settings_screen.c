@@ -12,6 +12,7 @@
 #include "password_platform.h"
 #include "settings_store.h"
 #include "ui_pixel.h"
+#include "ui_text.h"
 
 enum {
     OPTION_COUNT = 5,
@@ -52,21 +53,11 @@ static bool s_diagnostic_view;
 
 static void build(void);
 
-static const char *theme_text(int theme)
+/* 选项名、取值、提示语与自检句都在 moonbit/ui_text.mbt 组装（main/ui_text.c 的
+ * 共享缓冲）；构建失败（超出缓冲）时保留上一帧，不显示半截句子。 */
+static void set_text(lv_obj_t *label, const char *text)
 {
-    return theme == SETTINGS_THEME_SKY ? "Sky" : "Cyber";
-}
-
-static const char *sound_text(bool enabled)
-{
-    return enabled ? "ON" : "OFF";
-}
-
-static const char *policy_text(int profile)
-{
-    static const char *names[] = {"Compat", "Standard", "Strict"};
-    return profile >= SETTINGS_POLICY_COMPATIBLE &&
-        profile <= SETTINGS_POLICY_STRICT ? names[profile] : names[1];
+    if (text) lv_label_set_text(label, text);
 }
 
 static void teardown(void)
@@ -89,23 +80,35 @@ static void teardown(void)
 static void refresh_options(void)
 {
     int selected = passport_moonbit_settings_selected(s_state);
-    lv_label_set_text(
+    // 取值文案（ON/OFF、主题名、策略名）在 ui_text.mbt；下标就是设置项序号。
+    set_text(
         s_value_labels[0],
-        theme_text(passport_moonbit_settings_theme(s_state))
+        ui_text(
+            UI_TEXT_SETTINGS_VALUE, 0, passport_moonbit_settings_theme(s_state)
+        )
     );
-    lv_label_set_text(
+    set_text(
         s_value_labels[1],
-        sound_text(passport_moonbit_settings_sound_enabled(s_state) != 0)
+        ui_text(
+            UI_TEXT_SETTINGS_VALUE, 1,
+            passport_moonbit_settings_sound_enabled(s_state)
+        )
     );
-    lv_label_set_text(
+    set_text(
         s_value_labels[2],
-        policy_text(passport_moonbit_settings_policy_profile(s_state))
+        ui_text(
+            UI_TEXT_SETTINGS_VALUE, 2,
+            passport_moonbit_settings_policy_profile(s_state)
+        )
     );
-    lv_label_set_text(
+    set_text(
         s_value_labels[3],
-        sound_text(passport_moonbit_settings_exclude_ambiguous(s_state) != 0)
+        ui_text(
+            UI_TEXT_SETTINGS_VALUE, 3,
+            passport_moonbit_settings_exclude_ambiguous(s_state)
+        )
     );
-    lv_label_set_text(s_value_labels[4], "RUN");
+    set_text(s_value_labels[4], ui_text(UI_TEXT_SETTINGS_VALUE, 4, 0));
     for (int i = 0; i < OPTION_COUNT; i++) {
         bool focused = i == selected;
         lv_obj_set_style_bg_color(
@@ -125,9 +128,6 @@ static void refresh_options(void)
 
 static void build(void)
 {
-    static const char *names[OPTION_COUNT] = {
-        "Theme", "Sound", "Policy", "Clear chars", "Self-check"
-    };
     lv_obj_t *old_screen = s_screen;
 
     s_screen = NULL;
@@ -145,7 +145,8 @@ static void build(void)
             s_screen, 7, 45 + i * 42, 226, 35, UI_PAPER
         );
         s_name_labels[i] = ui_pixel_label(
-            s_panels[i], names[i], &lv_font_montserrat_14, UI_TEXT
+            s_panels[i], ui_text(UI_TEXT_SETTINGS_NAME, i, 0),
+            &lv_font_montserrat_14, UI_TEXT
         );
         lv_obj_align(s_name_labels[i], LV_ALIGN_LEFT_MID, 0, 0);
         s_value_labels[i] = ui_pixel_label(
@@ -155,7 +156,8 @@ static void build(void)
     }
 
     lv_obj_t *hint = ui_pixel_label(
-        s_screen, "OK: change   LONG: back", &lv_font_montserrat_14, UI_TEXT
+        s_screen, ui_text(UI_TEXT_SETTINGS_HINT, 0, 0),
+        &lv_font_montserrat_14, UI_TEXT
     );
     lv_obj_align(hint, LV_ALIGN_BOTTOM_MID, 0, -10);
 
@@ -202,46 +204,30 @@ static void refresh_diagnostics_locked(void)
     int passed = passport_moonbit_diagnostic_run_passed(s_diagnostic_run);
     int failure = passport_moonbit_diagnostic_run_failure(s_diagnostic_run);
 
-    lv_label_set_text_fmt(
+    // 句子（含数字格式）在 moonbit/ui_text.mbt，这里只决定状态颜色。
+    set_text(
         s_diagnostic_progress_label,
-        "%d / %d samples",
-        completed,
-        target
+        ui_text(UI_TEXT_DIAGNOSTIC_PROGRESS, completed, target)
     );
-    if (status == DIAGNOSTIC_STATUS_RUNNING) {
-        lv_label_set_text(s_diagnostic_status_label, "Checking...");
-        lv_label_set_text(s_diagnostic_detail_label, "No samples are stored");
-        lv_obj_set_style_text_color(
-            s_diagnostic_status_label, lv_color_hex(UI_SKY_DARK), 0
-        );
-    } else if (status == DIAGNOSTIC_STATUS_PASSED) {
-        lv_label_set_text(s_diagnostic_status_label, "PASS");
-        lv_label_set_text_fmt(
-            s_diagnostic_detail_label, "%d / %d passed", passed, target
-        );
-        lv_obj_set_style_text_color(
-            s_diagnostic_status_label, lv_color_hex(UI_LIME), 0
-        );
+    set_text(
+        s_diagnostic_status_label, ui_text(UI_TEXT_DIAGNOSTIC_STATUS, status, 0)
+    );
+    set_text(
+        s_diagnostic_detail_label,
+        ui_text_diagnostic_detail(status, completed, target, passed, failure)
+    );
+
+    uint32_t color = UI_SKY_DARK;
+    if (status == DIAGNOSTIC_STATUS_PASSED) {
+        color = UI_LIME;
     } else if (status == DIAGNOSTIC_STATUS_CANCELLED) {
-        lv_label_set_text(s_diagnostic_status_label, "Canceled");
-        lv_label_set_text_fmt(
-            s_diagnostic_detail_label, "Stopped after %d samples", completed
-        );
-        lv_obj_set_style_text_color(
-            s_diagnostic_status_label, lv_color_hex(UI_ORANGE), 0
-        );
-    } else {
-        lv_label_set_text(s_diagnostic_status_label, "FAIL");
-        lv_label_set_text_fmt(
-            s_diagnostic_detail_label,
-            "%d passed  Error %d",
-            passed,
-            failure
-        );
-        lv_obj_set_style_text_color(
-            s_diagnostic_status_label, lv_color_hex(UI_RED), 0
-        );
+        color = UI_ORANGE;
+    } else if (status == DIAGNOSTIC_STATUS_FAILED) {
+        color = UI_RED;
     }
+    lv_obj_set_style_text_color(
+        s_diagnostic_status_label, lv_color_hex(color), 0
+    );
 }
 
 static void build_diagnostics_locked(void)
@@ -265,7 +251,8 @@ static void build_diagnostics_locked(void)
         s_screen, 7, 70, 226, 145, UI_PAPER
     );
     s_diagnostic_status_label = ui_pixel_label(
-        panel, "Checking...", &lv_font_montserrat_20, UI_SKY_DARK
+        panel, ui_text(UI_TEXT_DIAGNOSTIC_STATUS, DIAGNOSTIC_STATUS_RUNNING, 0),
+        &lv_font_montserrat_20, UI_SKY_DARK
     );
     lv_obj_align(s_diagnostic_status_label, LV_ALIGN_TOP_MID, 0, 8);
     s_diagnostic_progress_label = ui_pixel_label(
@@ -281,7 +268,8 @@ static void build_diagnostics_locked(void)
     );
     lv_obj_align(s_diagnostic_detail_label, LV_ALIGN_TOP_MID, 0, 78);
     lv_obj_t *hint = ui_pixel_label(
-        s_screen, "LONG: cancel / back", &lv_font_montserrat_14, UI_TEXT
+        s_screen, ui_text(UI_TEXT_SETTINGS_HINT, 1, 0),
+        &lv_font_montserrat_14, UI_TEXT
     );
     lv_obj_align(hint, LV_ALIGN_BOTTOM_MID, 0, -20);
 

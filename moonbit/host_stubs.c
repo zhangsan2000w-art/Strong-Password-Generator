@@ -24,6 +24,14 @@ int32_t passport_screenshot_header_push(int32_t ch)
     return ch >= 0 && ch <= 127;
 }
 
+void passport_ui_text_reset(void) {}
+
+/* 界面文案是 UTF-8，续字节 >0x7F，桩不能像 ASCII 回调那样拒绝高位。 */
+int32_t passport_ui_text_push(int32_t ch)
+{
+    return ch >= 1 && ch <= 255;
+}
+
 int32_t passport_dictionary_count(void)
 {
     return 2;

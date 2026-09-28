@@ -9,6 +9,7 @@ idf_component_register(
          "settings_store.c"
          "passport_font_zh_16.c"
          "ui_pixel.c"
+         "ui_text.c"
     INCLUDE_DIRS "."
     REQUIRES bsp bootloader_support bt esp_driver_usb_serial_jtag esp_hid esp_hw_support mbedtls moonbit_password nvs_flash
 )

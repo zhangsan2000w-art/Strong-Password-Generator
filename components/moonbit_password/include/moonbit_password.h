@@ -102,6 +102,13 @@ int32_t passport_moonbit_screenshot_geometry_ok(int32_t width, int32_t height, i
 int32_t passport_moonbit_ui_pixel_blink_frame(uint64_t elapsed_ms);
 int32_t passport_moonbit_ui_pixel_jump_offset(int32_t frame);
 
+/* UI text for the product screens (moonbit/ui_text.mbt): parameter/battery/BLE/
+ * result/settings wording built into the shared C-side buffer via
+ * passport_ui_text_*. Returns the byte count, which C must match against what it
+ * actually collected (main/ui_text.c). */
+int32_t passport_moonbit_ui_text_build(int32_t kind, int32_t a, int32_t b);
+int32_t passport_moonbit_diagnostic_detail_build(int32_t status, int32_t completed, int32_t target, int32_t passed, int32_t failure);
+
 #ifdef __cplusplus
 }
 #endif
