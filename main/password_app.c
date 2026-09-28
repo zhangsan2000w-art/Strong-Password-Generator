@@ -237,8 +237,14 @@ static void refresh_result(void)
     );
     int warning = passport_moonbit_security_warning(s_state);
     static const char *profile_names[] = {"兼容", "标准", "严格"};
+    // 告警分两类：1/4/5/6 是"相对当前策略"的判定，需要拼上策略名才有意义；
+    // 2/3 说的是小写/大写开关本身，整句自足，拼前缀反而读不通。
     static const char *warning_names[] = {
-        "", "长度过短", "缺少小写", "缺少大写", "缺少数字", "缺少符号", "配置无效"
+        "", "长度过短", "生成关闭小写", "生成关闭大写",
+        "缺少数字", "缺少符号", "配置无效"
+    };
+    static const bool warning_needs_profile[] = {
+        false, true, false, false, true, true, true
     };
     if (result == RESULT_FAILURE) {
         lv_label_set_text(s_status_label, "生成失败 请重试");
@@ -251,7 +257,12 @@ static void refresh_result(void)
         const char *profile_name = profile >= 0 && profile < 3
             ? profile_names[profile] : profile_names[1];
         if (warning > 0 && warning < 7) {
-            lv_label_set_text_fmt(s_status_label, "%s %s", profile_name, warning_names[warning]);
+            if (warning_needs_profile[warning]) {
+                lv_label_set_text_fmt(
+                    s_status_label, "%s %s", profile_name, warning_names[warning]);
+            } else {
+                lv_label_set_text(s_status_label, warning_names[warning]);
+            }
             lv_obj_set_style_text_color(s_status_label, lv_color_hex(UI_ORANGE), 0);
         } else {
             lv_label_set_text_fmt(s_status_label, "策略 %s", profile_name);
