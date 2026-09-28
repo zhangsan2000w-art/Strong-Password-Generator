@@ -1,6 +1,7 @@
 set(PROJECT_ROOT "${CMAKE_CURRENT_LIST_DIR}/../..")
+set(REPOSITORY_ROOT "${PROJECT_ROOT}/../..")
 set(MOONBIT_SOURCE_DIR "${PROJECT_ROOT}/moonbit")
-set(SECUREGEN_SOURCE_DIR "${PROJECT_ROOT}/src")
+set(SECUREGEN_SOURCE_DIR "${REPOSITORY_ROOT}/src")
 set(GENERATED_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated")
 set(GENERATED_MOONBIT_C "${GENERATED_DIR}/password_core.c")
 set(GENERATED_WORDLIST_C "${GENERATED_DIR}/eff_short_wordlist.c")
@@ -33,7 +34,7 @@ set(MOONBIT_SOURCES
 if(NOT CMAKE_BUILD_EARLY_EXPANSION)
 add_custom_command(
     OUTPUT "${GENERATED_MOONBIT_C}"
-    COMMAND "${PYTHON}" "${PROJECT_ROOT}/tools/generate_moonbit.py"
+    COMMAND "${PYTHON}" "${REPOSITORY_ROOT}/tools/generate_moonbit.py"
             --source-dir "${MOONBIT_SOURCE_DIR}"
             --securegen-dir "${SECUREGEN_SOURCE_DIR}"
             --output "${GENERATED_MOONBIT_C}"
@@ -42,18 +43,18 @@ add_custom_command(
             "${SECUREGEN_SOURCE_DIR}/api.mbt"
             "${SECUREGEN_SOURCE_DIR}/typed_api.mbt"
             "${SECUREGEN_SOURCE_DIR}/moon.pkg"
-            "${PROJECT_ROOT}/tools/generate_moonbit.py"
+            "${REPOSITORY_ROOT}/tools/generate_moonbit.py"
     VERBATIM
     COMMENT "Generating C from MoonBit password core"
 )
 
 add_custom_command(
     OUTPUT "${GENERATED_WORDLIST_C}"
-    COMMAND "${PYTHON}" "${PROJECT_ROOT}/tools/generate_wordlist.py"
-            --input "${PROJECT_ROOT}/assets/wordlists/eff-short-wordlist-1.txt"
+    COMMAND "${PYTHON}" "${REPOSITORY_ROOT}/tools/generate_wordlist.py"
+            --input "${REPOSITORY_ROOT}/assets/wordlists/eff-short-wordlist-1.txt"
             --output "${GENERATED_WORDLIST_C}"
-    DEPENDS "${PROJECT_ROOT}/assets/wordlists/eff-short-wordlist-1.txt"
-            "${PROJECT_ROOT}/tools/generate_wordlist.py"
+    DEPENDS "${REPOSITORY_ROOT}/assets/wordlists/eff-short-wordlist-1.txt"
+            "${REPOSITORY_ROOT}/tools/generate_wordlist.py"
     VERBATIM
     COMMENT "Generating flash-resident EFF word list"
 )
