@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="dark">
+    <title>MoonBit SecureGen</title>
+    <link rel="stylesheet" href="styles.css">
+    <script defer src="../../_build/js/release/build/zhangsan2000w-art/moonbit-securegen/cmd/web/web.js"></script>
+  </head>
+  <body>
+    <main>
+      <p class="eyebrow">MOONBIT LIBRARY CONSUMER</p>
+      <h1>SecureGen</h1>
+      <p class="intro">Generate credentials locally. The typed policy, generation, validation, and entropy APIs come from <code>moonbit-securegen</code>; secrets never leave this page.</p>
+
+      <section aria-labelledby="password-title">
+        <h2 id="password-title">Password</h2>
+        <div class="fields">
+          <label>Profile
+            <select id="profile">
+              <option value="compatible">Compatible</option>
+              <option value="standard" selected>Standard</option>
+              <option value="strict">Strict</option>
+            </select>
+          </label>
+          <label>Length
+            <input id="password-length" type="number" min="4" max="128" value="16">
+          </label>
+        </div>
+        <button id="generate-password" type="button">Generate password</button>
+      </section>
+
+      <section class="compact" aria-labelledby="other-title">
+        <h2 id="other-title">PIN and passphrase</h2>
+        <div class="actions">
+          <label>PIN digits
+            <input id="pin-length" type="number" min="4" max="32" value="6">
+          </label>
+          <button id="generate-pin" type="button">Generate PIN</button>
+          <button id="generate-passphrase" type="button">Generate passphrase</button>
+        </div>
+      </section>
+
+      <section class="result" aria-live="polite">
+        <div>
+          <span class="label">Generated value</span>
+          <output id="output">Ready</output>
+        </div>
+        <button id="copy" class="secondary" type="button">Copy</button>
+        <p id="entropy">Estimated entropy will appear here.</p>
+        <p id="status" data-kind="idle">No network request is used.</p>
+      </section>
+    </main>
+  </body>
+</html>

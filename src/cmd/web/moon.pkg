@@ -1,0 +1,12 @@
+pkgtype(kind: "executable")
+
+import {
+  "zhangsan2000w-art/moonbit-securegen" @lib,
+  "moonbitlang/core/env",
+}
+
+import {
+  "moonbitlang/core/test",
+} for "wbtest"
+
+supported_targets = "+js"
