@@ -42,6 +42,33 @@ class HeaderTests(unittest.TestCase):
             TOOL.parse_header(b"hello world\n")
 
 
+class ResyncTests(unittest.TestCase):
+    """The reply shares one USB-CDC stream with the device console log."""
+
+    def test_skips_log_lines_before_the_header(self) -> None:
+        lines = [
+            b"I (932) fap_screenshot: FAP_SCREENSHOT_V1 listener ready\n",
+            b"W (21170) NimBLE: GAP procedure initiated: advertise;\n",
+            b"FAP_SCREENSHOT_V1 240 320 RGB565LE 153600\n",
+        ]
+        self.assertEqual(TOOL.find_header(lines), (240, 320, 153600))
+
+    def test_returns_none_when_no_header_arrives(self) -> None:
+        self.assertIsNone(TOOL.find_header([b"boot:\n", b"I (1) heap_init:\n"]))
+
+    def test_gives_up_instead_of_buffering_forever(self) -> None:
+        lines = [b"I (1) noise:\n"] * 200 + [b"FAP_SCREENSHOT_V1 240 320 RGB565LE 153600\n"]
+        self.assertIsNone(TOOL.find_header(lines))
+
+    def test_a_near_miss_line_does_not_end_the_search(self) -> None:
+        # 尺寸对不上的一行仍属杂散日志：继续找，而不是当场失败。
+        lines = [
+            b"FAP_SCREENSHOT_V1 240 320 RGB565LE 100\n",
+            b"FAP_SCREENSHOT_V1 240 320 RGB565LE 153600\n",
+        ]
+        self.assertEqual(TOOL.find_header(lines), (240, 320, 153600))
+
+
 class ConversionTests(unittest.TestCase):
     def test_primary_colors(self) -> None:
         red = bytes((0x00, 0xF8))

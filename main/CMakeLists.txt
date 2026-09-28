@@ -11,5 +11,5 @@ idf_component_register(
          "ui_pixel.c"
          "ui_pixel_math.c"
     INCLUDE_DIRS "."
-    REQUIRES bsp bootloader_support bt esp_driver_usb_serial_jtag esp_hid esp_hw_support mbedtls moonbit_password nvs_flash
+    REQUIRES bsp bootloader_support bt esp_driver_usb_serial_jtag esp_hid esp_hw_support esp_lcd mbedtls moonbit_password nvs_flash
 )
