@@ -211,3 +211,27 @@ pub fn settings_policy_profile(state : UInt64) -> Int {
 pub fn settings_exclude_ambiguous(state : UInt64) -> Int {
   settings_field(state, settings_exclude_ambiguous_shift, 1)
 }
+
+///|
+// 持久化配置的清洗入口。NVS 里的字节可能来自旧版本固件、写坏的值或手工改动，
+// 必须收敛到合法枚举。这套规则原先在 main/settings_store.c 里写了两遍且边界
+// 不一致（加载路径只查上界、setter 查上下界），而策略档位在 policy_profile.mbt
+// 里还有第三份正确实现。这里收成唯一入口：C 侧两条路径都调它，
+// 策略档位直接复用 normalize_policy_profile，不再各写各的。
+#export_name("passport_moonbit_settings_sanitize_theme")
+pub fn settings_sanitize_theme(raw : Int) -> Int {
+  if raw == theme_sky { theme_sky } else { theme_cyber }
+}
+
+///|
+#export_name("passport_moonbit_settings_sanitize_policy_profile")
+pub fn settings_sanitize_policy_profile(raw : Int) -> Int {
+  normalize_policy_profile(raw)
+}
+
+///|
+// 布尔型设置：只有 0 算关，其余一律算开，与 C 侧原本的 != 0 语义一致。
+#export_name("passport_moonbit_settings_sanitize_flag")
+pub fn settings_sanitize_flag(raw : Int) -> Int {
+  if raw != 0 { 1 } else { 0 }
+}

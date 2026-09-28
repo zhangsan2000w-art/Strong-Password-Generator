@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <string.h>
 
 #include "bsp_battery.h"
 #include "bsp_display.h"
@@ -225,6 +226,26 @@ static void refresh_parameters(void)
     }
 }
 
+// 状态文案由 MoonBit 组装（moonbit/status_text.mbt），字节经下面两个回调落到
+// 这块缓冲；措辞和"是否拼策略名前缀"的规则都在那边，由单测钉住。
+#define STATUS_TEXT_MAX 64
+static char s_status_text[STATUS_TEXT_MAX];
+
+void passport_status_text_reset(void)
+{
+    s_status_text[0] = '\0';
+}
+
+int32_t passport_status_text_push(int32_t ch)
+{
+    if (ch < 1 || ch > 255) return 0;
+    const size_t length = strlen(s_status_text);
+    if (length + 1 >= sizeof(s_status_text)) return 0;
+    s_status_text[length] = (char)ch;
+    s_status_text[length + 1] = '\0';
+    return 1;
+}
+
 static void refresh_result(void)
 {
     int result = state_value(FIELD_RESULT);
@@ -236,16 +257,6 @@ static void refresh_result(void)
         s_state, s_password_display_mode, elapsed_ms
     );
     int warning = passport_moonbit_security_warning(s_state);
-    static const char *profile_names[] = {"兼容", "标准", "严格"};
-    // 告警分两类：1/4/5/6 是"相对当前策略"的判定，需要拼上策略名才有意义；
-    // 2/3 说的是小写/大写开关本身，整句自足，拼前缀反而读不通。
-    static const char *warning_names[] = {
-        "", "长度过短", "生成关闭小写", "生成关闭大写",
-        "缺少数字", "缺少符号", "配置无效"
-    };
-    static const bool warning_needs_profile[] = {
-        false, true, false, false, true, true, true
-    };
     if (result == RESULT_FAILURE) {
         lv_label_set_text(s_status_label, "生成失败 请重试");
         lv_obj_set_style_text_color(s_status_label, lv_color_hex(UI_RED), 0);
@@ -254,20 +265,17 @@ static void refresh_result(void)
     }
     if (state_value(FIELD_MODE) == 0) {
         int profile = state_value(FIELD_POLICY_PROFILE);
-        const char *profile_name = profile >= 0 && profile < 3
-            ? profile_names[profile] : profile_names[1];
-        if (warning > 0 && warning < 7) {
-            if (warning_needs_profile[warning]) {
-                lv_label_set_text_fmt(
-                    s_status_label, "%s %s", profile_name, warning_names[warning]);
-            } else {
-                lv_label_set_text(s_status_label, warning_names[warning]);
-            }
-            lv_obj_set_style_text_color(s_status_label, lv_color_hex(UI_ORANGE), 0);
-        } else {
-            lv_label_set_text_fmt(s_status_label, "策略 %s", profile_name);
-            lv_obj_set_style_text_color(s_status_label, lv_color_hex(UI_LIME), 0);
+        // MoonBit 报的字节数必须与实际落进缓冲的长度一致：截断意味着文案超出
+        // STATUS_TEXT_MAX，此时宁可留着上一帧，也不显示半截句子。
+        const int32_t built = passport_moonbit_status_text_build(profile, warning);
+        if (built > 0 && (size_t)built == strlen(s_status_text)) {
+            lv_label_set_text(s_status_label, s_status_text);
         }
+        lv_obj_set_style_text_color(
+            s_status_label,
+            lv_color_hex(warning > 0 ? UI_ORANGE : UI_LIME),
+            0
+        );
     } else {
         lv_label_set_text(s_status_label, result == RESULT_SUCCESS ? "已生成" : "");
         lv_obj_set_style_text_color(s_status_label, lv_color_hex(UI_LIME), 0);

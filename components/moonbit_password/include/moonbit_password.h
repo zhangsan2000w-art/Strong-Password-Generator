@@ -91,6 +91,17 @@ int32_t passport_moonbit_sound_volume(void);
 int32_t passport_moonbit_sound_note_count(void);
 int32_t passport_moonbit_sound_note_samples(int32_t note);
 int32_t passport_moonbit_sound_sample(int32_t note, int32_t sample_index);
+/* Status-line wording for the result area (moonbit/status_text.mbt).
+ * Builds UTF-8 bytes into a C-side buffer via passport_status_text_*;
+ * returns the byte count, which C must match against what it actually got. */
+int32_t passport_moonbit_status_text_build(int32_t profile, int32_t warning);
+
+/* Persisted-settings sanitisation: one entry point shared by the NVS load
+ * path and every setter (moonbit/settings.mbt). */
+int32_t passport_moonbit_settings_sanitize_theme(int32_t raw);
+int32_t passport_moonbit_settings_sanitize_policy_profile(int32_t raw);
+int32_t passport_moonbit_settings_sanitize_flag(int32_t raw);
+
 /* FAP_SCREENSHOT_V1 serial screenshot protocol core (moonbit/screenshot.mbt). */
 int32_t passport_moonbit_screenshot_command_length(void);
 int32_t passport_moonbit_screenshot_matcher_initial(void);

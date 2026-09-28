@@ -1,4 +1,5 @@
 #include "settings_store.h"
+#include "moonbit_password.h"
 
 #include <stdint.h>
 
@@ -66,25 +67,28 @@ esp_err_t settings_store_init(void)
     err = nvs_open(SETTINGS_NAMESPACE, NVS_READWRITE, &s_handle);
     if (err != ESP_OK) return err;
 
+    // 清洗规则全部走 MoonBit 的 settings_sanitize_*：加载路径原先只查策略
+    // 上界、setter 查上下界，两份规则会漂移。这里不再自己判断。
     uint8_t theme = (uint8_t)s_theme;
     if (nvs_get_u8(s_handle, "theme", &theme) == ESP_OK) {
-        s_theme = theme == SETTINGS_THEME_SKY ? SETTINGS_THEME_SKY : SETTINGS_THEME_CYBER;
+        s_theme = passport_moonbit_settings_sanitize_theme(theme);
     }
 
     uint8_t sound = s_sound_enabled ? 1 : 0;
     if (nvs_get_u8(s_handle, "sound", &sound) == ESP_OK) {
-        s_sound_enabled = sound != 0;
+        s_sound_enabled = passport_moonbit_settings_sanitize_flag(sound) != 0;
     }
 
     uint8_t policy_profile = (uint8_t)s_policy_profile;
     if (nvs_get_u8(s_handle, "policy", &policy_profile) == ESP_OK) {
-        s_policy_profile = policy_profile <= SETTINGS_POLICY_STRICT
-            ? policy_profile : SETTINGS_POLICY_STANDARD;
+        s_policy_profile =
+            passport_moonbit_settings_sanitize_policy_profile(policy_profile);
     }
 
     uint8_t exclude_ambiguous = s_exclude_ambiguous ? 1 : 0;
     if (nvs_get_u8(s_handle, "clear", &exclude_ambiguous) == ESP_OK) {
-        s_exclude_ambiguous = exclude_ambiguous != 0;
+        s_exclude_ambiguous =
+            passport_moonbit_settings_sanitize_flag(exclude_ambiguous) != 0;
     }
 
     s_queue = xQueueCreate(SETTINGS_QUEUE_DEPTH, sizeof(settings_snapshot_t));
@@ -155,8 +159,7 @@ static esp_err_t queue_current_snapshot(void)
 
 esp_err_t settings_store_set_theme(int theme)
 {
-    int normalized = theme == SETTINGS_THEME_SKY ? SETTINGS_THEME_SKY : SETTINGS_THEME_CYBER;
-    s_theme = normalized;
+    s_theme = passport_moonbit_settings_sanitize_theme(theme);
     return queue_current_snapshot();
 }
 
@@ -168,8 +171,7 @@ esp_err_t settings_store_set_sound(bool enabled)
 
 esp_err_t settings_store_set_policy_profile(int profile)
 {
-    s_policy_profile = profile >= SETTINGS_POLICY_COMPATIBLE &&
-        profile <= SETTINGS_POLICY_STRICT ? profile : SETTINGS_POLICY_STANDARD;
+    s_policy_profile = passport_moonbit_settings_sanitize_policy_profile(profile);
     return queue_current_snapshot();
 }
 

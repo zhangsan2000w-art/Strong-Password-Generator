@@ -112,3 +112,49 @@ test "unchanged profile preserves session character overrides" {
   @test.assert_eq(state_get(applied, state_field_uppercase), 1)
   @test.assert_eq(state_get(applied, state_field_exclude_ambiguous), 0)
 }
+
+///|
+test "settings sanitisation collapses every persisted value into a legal enum" {
+  // 主题只有两个合法值，其余（含越界与负数）一律回落赛博朋克。
+  @test.assert_eq(settings_sanitize_theme(theme_cyber), theme_cyber)
+  @test.assert_eq(settings_sanitize_theme(theme_sky), theme_sky)
+  @test.assert_eq(settings_sanitize_theme(2), theme_cyber)
+  @test.assert_eq(settings_sanitize_theme(255), theme_cyber)
+  @test.assert_eq(settings_sanitize_theme(-1), theme_cyber)
+
+  // 策略档位与 with_policy_profile 用的是同一个 normalize，不再各写各的。
+  @test.assert_eq(
+    settings_sanitize_policy_profile(policy_profile_compatible),
+    policy_profile_compatible,
+  )
+  @test.assert_eq(
+    settings_sanitize_policy_profile(policy_profile_strict), policy_profile_strict,
+  )
+  @test.assert_eq(
+    settings_sanitize_policy_profile(9), policy_profile_standard,
+  )
+  @test.assert_eq(
+    settings_sanitize_policy_profile(-3), policy_profile_standard,
+  )
+
+  // 布尔项：只有 0 算关。
+  @test.assert_eq(settings_sanitize_flag(0), 0)
+  @test.assert_eq(settings_sanitize_flag(1), 1)
+  @test.assert_eq(settings_sanitize_flag(200), 1)
+}
+
+///|
+test "sanitised values are idempotent" {
+  let mut raw = -5
+  while raw <= 300 {
+    @test.assert_eq(
+      settings_sanitize_theme(settings_sanitize_theme(raw)),
+      settings_sanitize_theme(raw),
+    )
+    @test.assert_eq(
+      settings_sanitize_policy_profile(settings_sanitize_policy_profile(raw)),
+      settings_sanitize_policy_profile(raw),
+    )
+    raw = raw + 7
+  }
+}
