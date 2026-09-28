@@ -6,10 +6,12 @@
 
 ## 可复用产物是什么？
 
-`moonbit/securegen` 是平台无关的 MoonBit 包，公共能力包括：
+仓库根目录是可发布的 `zhangsan2000w-art/moonbit-securegen` 模块，`src` 是它的
+平台无关根包，公共能力包括：
 
-- 类型化 `PasswordPolicy` 预设和自定义策略；
-- 返回 MoonBit `String` 的 `generate_password`、`generate_pin`；
+- 类型化密码策略与 Passphrase 策略；
+- 返回 MoonBit `String` 的密码、Passphrase 与 PIN API；
+- 类型化 `RandomSource`、公开校验、熵估算与强度档位；
 - 面向嵌入式场景、由调用方持有输出 sink 的密码、PIN、Passphrase API；
 - 无偏随机索引；
 - 由调用方注入的 `() -> UInt` 随机熵接口。
@@ -19,9 +21,9 @@
 
 ## 哪些应用消费了这个包？
 
-1. `moonbit/examples/cli` 是独立宿主应用，通过 `moonbitlang/core/env` 获取密码学
+1. `src/cmd/securegen` 是独立宿主应用，通过 `moonbitlang/core/env` 获取密码学
    随机熵，支持选择策略、自定义长度、PIN 和批量生成。
-2. 仓库根 MoonBit 包是 FoloToy 固件适配器，保留设备 C ABI，但把密码、PIN 和
+2. `moonbit` workspace 成员是 FoloToy 固件适配器，保留设备 C ABI，但把密码、PIN 和
    Passphrase 生成委托给 `securegen`。
 
 CLI 不导入固件适配包，可移植包也不导入任何一个应用。
@@ -31,11 +33,11 @@ CLI 不导入固件适配包，可移植包也不导入任何一个应用。
 在仓库根目录运行：
 
 ```bash
-moon -C moonbit test -p folotoy/strong-password-generator-ai-passport/securegen \
+moon test -p zhangsan2000w-art/moonbit-securegen \
   --target wasm-gc --release --deny-warn
-moon -C moonbit test -p folotoy/strong-password-generator-ai-passport/examples/cli \
+moon test -p zhangsan2000w-art/moonbit-securegen/cmd/securegen \
   --target js --release --deny-warn
-moon -C moonbit run examples/cli --target js --release -- \
+moon run src/cmd/securegen --target js --release -- \
   --profile strict --length 24 --count 3
 python tools/check_repo.py
 ```

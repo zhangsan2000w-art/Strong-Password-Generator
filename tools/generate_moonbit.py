@@ -11,8 +11,8 @@ import subprocess
 import sys
 
 
-PACKAGE = "folotoy/strong-password-generator-ai-passport"
-SECUREGEN_PACKAGE = f"{PACKAGE}/securegen"
+PACKAGE = "zhangsan2000w-art/moonbit-securegen-folotoy"
+SECUREGEN_PACKAGE = "zhangsan2000w-art/moonbit-securegen"
 
 
 def moon_home(moonc: Path) -> Path:
@@ -31,6 +31,7 @@ def run(command: list[str]) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--source-dir", type=Path, required=True)
+    parser.add_argument("--securegen-dir", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
 
@@ -58,7 +59,7 @@ def main() -> int:
         print(f"error: no MoonBit sources found in {source_dir}", file=sys.stderr)
         return 2
 
-    securegen_dir = source_dir / "securegen"
+    securegen_dir = args.securegen_dir.resolve()
     securegen_sources = sorted(
         path for path in securegen_dir.glob("*.mbt")
         if not path.name.endswith(("_test.mbt", "_wbtest.mbt"))

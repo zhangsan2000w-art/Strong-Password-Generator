@@ -9,9 +9,9 @@ and does not depend on ESP-IDF, FoloToy, LVGL, BLE, or device firmware.
 ## Run
 
 ```bash
-moon -C moonbit run examples/cli --target js --release -- --help
-moon -C moonbit run examples/cli --target js --release -- --profile strict --length 24
-moon -C moonbit run examples/cli --target js --release -- --pin 8 --count 3
+moon run src/cmd/securegen --target js --release -- --help
+moon run src/cmd/securegen --target js --release -- --profile strict --length 24
+moon run src/cmd/securegen --target js --release -- --pin 8 --count 3
 ```
 
 Options:
@@ -27,5 +27,5 @@ The application refuses to substitute a deterministic fallback if the host
 cannot provide secure entropy. Generated secrets are printed to standard
 output, so avoid terminal recording, shared logs, and copied shell output.
 
-The generation algorithms remain in `moonbit/securegen`; this directory is a
-consumer application and a reference integration for other MoonBit projects.
+The generation algorithms remain in the root `src` package; this directory is
+a consumer application and a reference integration for other MoonBit projects.

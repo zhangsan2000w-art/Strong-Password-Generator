@@ -40,19 +40,20 @@ packages.
 
 ## Applications
 
-- `../examples/cli` is an independent MoonBit consumer that obtains
+- [`../../src/cmd/securegen`](../../src/cmd/securegen/main.mbt) is an
+  independent MoonBit consumer that obtains
   cryptographically secure entropy through `moonbitlang/core/env`. It supports
   password profiles, custom lengths, PINs, and multiple generated values.
-- The repository-root MoonBit package is a Native foreign-library adapter used
+- The `moonbit` workspace member is a Native foreign-library adapter used
   by the FoloToy AI Passport firmware. Its existing C ABI delegates generation
   to `securegen`.
 
 Run the portable package tests and example:
 
 ```bash
-moon -C moonbit test -p folotoy/strong-password-generator-ai-passport/securegen \
+moon test -p zhangsan2000w-art/moonbit-securegen \
   --target wasm-gc --release --deny-warn
-moon -C moonbit run examples/cli --target js --release -- --profile strict --length 24
+moon run src/cmd/securegen --target js --release -- --profile strict --length 24
 ```
 
 ## Security boundary

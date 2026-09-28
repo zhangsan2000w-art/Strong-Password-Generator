@@ -7,11 +7,14 @@ building or owning FoloToy hardware.
 
 ## What is the reusable artifact?
 
-`moonbit/securegen` is a platform-neutral MoonBit package. Its public surface
+The repository root is the publishable `zhangsan2000w-art/moonbit-securegen`
+module, and `src` is its platform-neutral root package. Its public surface
 includes:
 
-- typed `PasswordPolicy` presets and custom policies;
-- `generate_password` and `generate_pin` APIs returning MoonBit `String`;
+- typed password and passphrase policies;
+- password, passphrase, and PIN APIs returning MoonBit `String`;
+- a typed `RandomSource`, public validators, entropy estimators, and strength
+  bands;
 - allocation-controlled password, PIN, and passphrase APIs for embedded use;
 - unbiased random-index selection;
 - a caller-injected `() -> UInt` entropy interface.
@@ -22,10 +25,10 @@ cryptographic source while tests can use deterministic sequences.
 
 ## Which applications consume it?
 
-1. `moonbit/examples/cli` is an independent host application. It uses
+1. `src/cmd/securegen` is an independent host application. It uses
    `moonbitlang/core/env` cryptographic entropy and supports policy selection,
    custom lengths, PIN output, and batch generation.
-2. The repository-root MoonBit package is the FoloToy firmware adapter. It
+2. The `moonbit` workspace member is the FoloToy firmware adapter. It
    preserves the device C ABI but delegates password, PIN, and passphrase
    generation to `securegen`.
 
@@ -37,11 +40,11 @@ import either application.
 From the repository root:
 
 ```bash
-moon -C moonbit test -p folotoy/strong-password-generator-ai-passport/securegen \
+moon test -p zhangsan2000w-art/moonbit-securegen \
   --target wasm-gc --release --deny-warn
-moon -C moonbit test -p folotoy/strong-password-generator-ai-passport/examples/cli \
+moon test -p zhangsan2000w-art/moonbit-securegen/cmd/securegen \
   --target js --release --deny-warn
-moon -C moonbit run examples/cli --target js --release -- \
+moon run src/cmd/securegen --target js --release -- \
   --profile strict --length 24 --count 3
 python tools/check_repo.py
 ```

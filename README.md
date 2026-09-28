@@ -9,16 +9,17 @@ consumers: a secure host CLI and the Strong Password Generator firmware for
 FoloToy AI Passport.
 
 The firmware is a reference application of the MoonBit package, not the package
-boundary itself. Consumers can import `moonbit/securegen` without ESP-IDF,
+boundary itself. Consumers can import `zhangsan2000w-art/moonbit-securegen`
+without ESP-IDF,
 FoloToy, LVGL, BLE, a filesystem, or network access.
 
 For a short evaluation path, see the
 [reviewer guide](docs/competition/REVIEW_GUIDE.md), then run:
 
 ```bash
-moon -C moonbit test -p folotoy/strong-password-generator-ai-passport/securegen \
+moon test -p zhangsan2000w-art/moonbit-securegen \
   --target wasm-gc --release --deny-warn
-moon -C moonbit run examples/cli --target js --release -- --profile strict --length 24
+moon run src/cmd/securegen --target js --release -- --profile strict --length 24
 ```
 
 ## FoloToy reference application
@@ -46,10 +47,11 @@ the user explicitly selects **Send** over an encrypted BLE HID connection.
 The project now has a library-first boundary instead of exposing generation
 only as firmware internals:
 
-- [`moonbit/securegen`](moonbit/securegen/README.md) is a platform-neutral
-  MoonBit package with typed `PasswordPolicy`, String-returning application
-  APIs, allocation-controlled embedded APIs, and an injected random source.
-- [`moonbit/examples/cli`](moonbit/examples/cli/main.mbt) is an independent
+- [`src`](src/api.mbt) is the root, platform-neutral MoonBit package; its
+  [API guide](docs/api/README.md) covers the typed `PasswordPolicy`,
+  String-returning application APIs, allocation-controlled embedded APIs, and
+  injected random source.
+- [`src/cmd/securegen`](src/cmd/securegen/main.mbt) is an independent
   MoonBit application using host cryptographic entropy through
   `moonbitlang/core/env`; it supports profiles, custom lengths, PINs, and batch output.
 - The AI Passport firmware is a second, real application. Its stable C ABI now
@@ -116,6 +118,7 @@ Run the full static and host-test gate:
 Run the MoonBit core directly:
 
 ```bash
+moon check --target wasm-gc --deny-warn
 MOONBIT_NEW_NATIVE=0 moon -C moonbit check --target native --deny-warn
 MOONBIT_NEW_NATIVE=0 moon -C moonbit test --target native --release
 ```
@@ -123,9 +126,9 @@ MOONBIT_NEW_NATIVE=0 moon -C moonbit test --target native --release
 The reusable package also has a backend-independent gate that runs on WasmGC:
 
 ```bash
-moon -C moonbit test -p folotoy/strong-password-generator-ai-passport/securegen \
+moon test -p zhangsan2000w-art/moonbit-securegen \
   --target wasm-gc --release --deny-warn
-moon -C moonbit run examples/cli --target js --release -- --profile strict --length 24
+moon run src/cmd/securegen --target js --release -- --profile strict --length 24
 ```
 
 Deterministic sources are used only by tests. The CLI uses host cryptographic entropy; firmware randomness crosses the C FFI boundary into the ESP32 adapter.

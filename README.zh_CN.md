@@ -7,14 +7,15 @@
 端：使用宿主安全随机源的 CLI，以及运行在 FoloToy AI Passport 上的强密码生成固件。
 
 固件是 MoonBit 包的参考应用，不是这个项目的库边界。其他项目可以直接导入
-`moonbit/securegen`，而不依赖 ESP-IDF、FoloToy、LVGL、BLE、文件系统或网络。
+`zhangsan2000w-art/moonbit-securegen`，而不依赖 ESP-IDF、FoloToy、LVGL、BLE、
+文件系统或网络。
 
 审查时可先阅读[审查者快速验证指南](docs/competition/REVIEW_GUIDE.zh_CN.md)，再运行：
 
 ```bash
-moon -C moonbit test -p folotoy/strong-password-generator-ai-passport/securegen \
+moon test -p zhangsan2000w-art/moonbit-securegen \
   --target wasm-gc --release --deny-warn
-moon -C moonbit run examples/cli --target js --release -- --profile strict --length 24
+moon run src/cmd/securegen --target js --release -- --profile strict --length 24
 ```
 
 ## FoloToy 参考应用
@@ -40,10 +41,10 @@ moon -C moonbit run examples/cli --target js --release -- --profile strict --len
 
 项目现在以库为核心划分边界，不再只把生成能力作为固件内部实现：
 
-- [`moonbit/securegen`](moonbit/securegen/README.zh_CN.md) 是与平台无关的 MoonBit
-  包，提供类型化 `PasswordPolicy`、返回 String 的应用 API、可控内存分配的嵌入式
-  API，以及由调用方注入的随机源。
-- [`moonbit/examples/cli`](moonbit/examples/cli/main.mbt) 是通过
+- [`src`](src/api.mbt) 是仓库根模块中的平台无关 MoonBit 包；其
+  [API 指南](docs/api/README.zh_CN.md)介绍类型化 `PasswordPolicy`、返回 String 的
+  应用 API、可控内存分配的嵌入式 API，以及由调用方注入的随机源。
+- [`src/cmd/securegen`](src/cmd/securegen/main.mbt) 是通过
   `moonbitlang/core/env` 使用宿主密码学随机源的独立 MoonBit 应用，支持策略、长度、
   PIN 和批量生成。
 - AI Passport 固件是第二个真实应用。它的稳定 C ABI 现在把密码、PIN 和 Passphrase
@@ -109,6 +110,7 @@ GitHub Actions 安装 MoonBit 的 `latest` 稳定通道，因为官方 CDN 不�
 也可单独运行 MoonBit 核心测试：
 
 ```bash
+moon check --target wasm-gc --deny-warn
 MOONBIT_NEW_NATIVE=0 moon -C moonbit check --target native --deny-warn
 MOONBIT_NEW_NATIVE=0 moon -C moonbit test --target native --release
 ```
@@ -116,9 +118,9 @@ MOONBIT_NEW_NATIVE=0 moon -C moonbit test --target native --release
 可复用包还提供不依赖固件后端的 WasmGC 门禁：
 
 ```bash
-moon -C moonbit test -p folotoy/strong-password-generator-ai-passport/securegen \
+moon test -p zhangsan2000w-art/moonbit-securegen \
   --target wasm-gc --release --deny-warn
-moon -C moonbit run examples/cli --target js --release -- --profile strict --length 24
+moon run src/cmd/securegen --target js --release -- --profile strict --length 24
 ```
 
 确定性随机源只用于测试。CLI 使用宿主密码学随机源；固件随机数通过 C FFI 进入 ESP32 适配器。

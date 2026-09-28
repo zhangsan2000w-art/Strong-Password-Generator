@@ -9,9 +9,9 @@ LVGL、BLE 或设备固件。
 ## 运行
 
 ```bash
-moon -C moonbit run examples/cli --target js --release -- --help
-moon -C moonbit run examples/cli --target js --release -- --profile strict --length 24
-moon -C moonbit run examples/cli --target js --release -- --pin 8 --count 3
+moon run src/cmd/securegen --target js --release -- --help
+moon run src/cmd/securegen --target js --release -- --profile strict --length 24
+moon run src/cmd/securegen --target js --release -- --pin 8 --count 3
 ```
 
 参数：
@@ -26,5 +26,5 @@ moon -C moonbit run examples/cli --target js --release -- --pin 8 --count 3
 如果宿主不能提供安全随机熵，应用不会悄悄降级到确定性随机源。生成结果会写入标准
 输出，请避免终端录屏、共享日志以及复制包含密码的 Shell 输出。
 
-生成算法仍然位于 `moonbit/securegen`；本目录只是消费端应用，也是其他 MoonBit
+生成算法仍然位于根模块的 `src` 包；本目录只是消费端应用，也是其他 MoonBit
 项目接入该库时可以参考的完整示例。

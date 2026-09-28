@@ -110,13 +110,13 @@ fn parse_args(args : Array[String]) -> Result[CliOptions, String] {
 }
 
 ///|
-fn policy_for(options : CliOptions) -> @securegen.PasswordPolicy {
+fn policy_for(options : CliOptions) -> @lib.PasswordPolicy {
   let policy = if options.profile == "compatible" {
-    @securegen.PasswordPolicy::compatible()
+    @lib.PasswordPolicy::compatible()
   } else if options.profile == "strict" {
-    @securegen.PasswordPolicy::strict()
+    @lib.PasswordPolicy::strict()
   } else {
-    @securegen.PasswordPolicy::standard()
+    @lib.PasswordPolicy::standard()
   }
   if options.length > 0 {
     policy.with_length(options.length)
@@ -145,7 +145,7 @@ fn print_help() -> Unit {
   println("SecureGen CLI - generate credentials using operating-system entropy")
   println("")
   println(
-    "Usage: moon -C moonbit run examples/cli --target js --release -- [options]",
+    "Usage: moon run src/cmd/securegen --target js --release -- [options]",
   )
   println("")
   println(
@@ -191,9 +191,9 @@ fn main {
   let mut generated = 0
   while generated < options.count {
     let result = if options.pin_digits > 0 {
-      @securegen.generate_pin(options.pin_digits, secure_random_u32)
+      @lib.generate_pin(options.pin_digits, secure_random_u32)
     } else {
-      @securegen.generate_password(policy, secure_random_u32)
+      @lib.generate_password(policy, secure_random_u32)
     }
     match result {
       Ok(value) => println(value)

@@ -1,7 +1,7 @@
 pkgtype(kind: "executable")
 
 import {
-  "folotoy/strong-password-generator-ai-passport/securegen",
+  "zhangsan2000w-art/moonbit-securegen" @lib,
   "moonbitlang/core/env",
 }
 

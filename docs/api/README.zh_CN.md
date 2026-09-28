@@ -36,17 +36,18 @@ match @securegen.generate_password_with_source(policy, random) {
 
 ## 应用
 
-- `../examples/cli` 是独立的 MoonBit 消费者，通过 `moonbitlang/core/env`
+- [`../../src/cmd/securegen`](../../src/cmd/securegen/main.mbt) 是独立的
+  MoonBit 消费者，通过 `moonbitlang/core/env`
   获取密码学安全随机源，支持密码策略、自定义长度、PIN 和批量生成。
-- 仓库根 MoonBit 包是供 FoloToy AI Passport 固件使用的 Native foreign-library
+- `moonbit` workspace 成员是供 FoloToy AI Passport 固件使用的 Native foreign-library
   适配器；现有 C ABI 已把生成工作委托给 `securegen`。
 
 运行可移植包测试和示例：
 
 ```bash
-moon -C moonbit test -p folotoy/strong-password-generator-ai-passport/securegen \
+moon test -p zhangsan2000w-art/moonbit-securegen \
   --target wasm-gc --release --deny-warn
-moon -C moonbit run examples/cli --target js --release -- --profile strict --length 24
+moon run src/cmd/securegen --target js --release -- --profile strict --length 24
 ```
 
 ## 安全边界

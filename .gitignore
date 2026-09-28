@@ -6,3 +6,4 @@ moonbit/_build/
 __pycache__/
 .vscode/
 .idea/
+/_build/

@@ -1,5 +1,6 @@
 set(PROJECT_ROOT "${CMAKE_CURRENT_LIST_DIR}/../..")
 set(MOONBIT_SOURCE_DIR "${PROJECT_ROOT}/moonbit")
+set(SECUREGEN_SOURCE_DIR "${PROJECT_ROOT}/src")
 set(GENERATED_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated")
 set(GENERATED_MOONBIT_C "${GENERATED_DIR}/password_core.c")
 set(GENERATED_WORDLIST_C "${GENERATED_DIR}/eff_short_wordlist.c")
@@ -20,7 +21,6 @@ set(MOONBIT_SOURCES
     "${MOONBIT_SOURCE_DIR}/random_source.mbt"
     "${MOONBIT_SOURCE_DIR}/security_policy.mbt"
     "${MOONBIT_SOURCE_DIR}/security_warning.mbt"
-    "${MOONBIT_SOURCE_DIR}/securegen/api.mbt"
     "${MOONBIT_SOURCE_DIR}/settings.mbt"
     "${MOONBIT_SOURCE_DIR}/sound.mbt"
     "${MOONBIT_SOURCE_DIR}/state.mbt"
@@ -35,10 +35,13 @@ add_custom_command(
     OUTPUT "${GENERATED_MOONBIT_C}"
     COMMAND "${PYTHON}" "${PROJECT_ROOT}/tools/generate_moonbit.py"
             --source-dir "${MOONBIT_SOURCE_DIR}"
+            --securegen-dir "${SECUREGEN_SOURCE_DIR}"
             --output "${GENERATED_MOONBIT_C}"
     DEPENDS ${MOONBIT_SOURCES}
             "${MOONBIT_SOURCE_DIR}/moon.pkg"
-            "${MOONBIT_SOURCE_DIR}/securegen/moon.pkg"
+            "${SECUREGEN_SOURCE_DIR}/api.mbt"
+            "${SECUREGEN_SOURCE_DIR}/typed_api.mbt"
+            "${SECUREGEN_SOURCE_DIR}/moon.pkg"
             "${PROJECT_ROOT}/tools/generate_moonbit.py"
     VERBATIM
     COMMENT "Generating C from MoonBit password core"
