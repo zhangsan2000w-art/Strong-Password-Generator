@@ -106,6 +106,7 @@ pub let ui_text_count : Int = 15
 
 ///|
 // 分隔符按下标取，越界回落第一个（与原 C 的 separator_text[value] 不同：
+///|
 /// 原实现越界会读越界内存，这里钉成确定的回落）。
 let ui_text_parameter_separators : Array[String] = ["-", ".", "_"]
 
@@ -357,8 +358,6 @@ pub fn diagnostic_detail_build(
   platform_ui_text_reset()
   emit_text_utf8(
     ui_diagnostic_detail(status, completed, target, passed, failure),
-    fn(ch) {
-      let _ = platform_ui_text_push(ch)
-    },
+    fn(ch) { let _ = platform_ui_text_push(ch) },
   )
 }

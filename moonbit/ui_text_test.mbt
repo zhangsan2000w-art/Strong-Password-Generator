@@ -23,40 +23,52 @@ test "utf8 encoder matches known byte vectors" {
 ///|
 test "parameter labels name every slot and reflect booleans" {
   @test.assert_eq(
-    ui_text_with(ui_text_param_label, parameter_random_length, 10), "长度 10",
+    ui_text_with(ui_text_param_label, parameter_random_length, 10),
+    "长度 10",
   )
   @test.assert_eq(
-    ui_text_with(ui_text_param_label, parameter_lowercase, 1), "小写 ON",
+    ui_text_with(ui_text_param_label, parameter_lowercase, 1),
+    "小写 ON",
   )
   @test.assert_eq(
-    ui_text_with(ui_text_param_label, parameter_uppercase, 0), "大写 OFF",
+    ui_text_with(ui_text_param_label, parameter_uppercase, 0),
+    "大写 OFF",
   )
   @test.assert_eq(
-    ui_text_with(ui_text_param_label, parameter_digits, 1), "数字 ON",
+    ui_text_with(ui_text_param_label, parameter_digits, 1),
+    "数字 ON",
   )
   @test.assert_eq(
-    ui_text_with(ui_text_param_label, parameter_symbols, 0), "符号 OFF",
+    ui_text_with(ui_text_param_label, parameter_symbols, 0),
+    "符号 OFF",
   )
   @test.assert_eq(
-    ui_text_with(ui_text_param_label, parameter_word_count, 4), "单词数 4",
+    ui_text_with(ui_text_param_label, parameter_word_count, 4),
+    "单词数 4",
   )
   @test.assert_eq(
-    ui_text_with(ui_text_param_label, parameter_capitalize, 1), "首字母 ON",
+    ui_text_with(ui_text_param_label, parameter_capitalize, 1),
+    "首字母 ON",
   )
   @test.assert_eq(
-    ui_text_with(ui_text_param_label, parameter_complete_word, 1), "完整单词 ON",
+    ui_text_with(ui_text_param_label, parameter_complete_word, 1),
+    "完整单词 ON",
   )
   @test.assert_eq(
-    ui_text_with(ui_text_param_label, parameter_separator, 0), "分隔符 -",
+    ui_text_with(ui_text_param_label, parameter_separator, 0),
+    "分隔符 -",
   )
   @test.assert_eq(
-    ui_text_with(ui_text_param_label, parameter_separator, 1), "分隔符 .",
+    ui_text_with(ui_text_param_label, parameter_separator, 1),
+    "分隔符 .",
   )
   @test.assert_eq(
-    ui_text_with(ui_text_param_label, parameter_separator, 2), "分隔符 _",
+    ui_text_with(ui_text_param_label, parameter_separator, 2),
+    "分隔符 _",
   )
   @test.assert_eq(
-    ui_text_with(ui_text_param_label, parameter_pin_length, 6), "PIN 位数 6",
+    ui_text_with(ui_text_param_label, parameter_pin_length, 6),
+    "PIN 位数 6",
   )
 }
 
@@ -66,10 +78,12 @@ test "hidden and unknown parameter kinds render nothing" {
   @test.assert_eq(ui_text_with(ui_text_param_label, parameter_hidden, 0), "")
   @test.assert_eq(ui_text_with(ui_text_param_label, 99, 0), "")
   @test.assert_eq(
-    ui_text_with(ui_text_param_label, parameter_separator, 9), "分隔符 -",
+    ui_text_with(ui_text_param_label, parameter_separator, 9),
+    "分隔符 -",
   )
   @test.assert_eq(
-    ui_text_with(ui_text_param_label, parameter_separator, -1), "分隔符 -",
+    ui_text_with(ui_text_param_label, parameter_separator, -1),
+    "分隔符 -",
   )
 }
 
@@ -77,7 +91,8 @@ test "hidden and unknown parameter kinds render nothing" {
 // BLE 状态到句子的映射逐条钉住：写错一个状态用户就会读到错的动作提示。
 test "every BLE status has its own sentence" {
   @test.assert_eq(
-    ui_text_with(ui_text_ble_status, ble_keyboard_starting, 0), "BLE 启动中",
+    ui_text_with(ui_text_ble_status, ble_keyboard_starting, 0),
+    "BLE 启动中",
   )
   @test.assert_eq(
     ui_text_with(ui_text_ble_status, ble_keyboard_advertising, 0),
@@ -92,10 +107,12 @@ test "every BLE status has its own sentence" {
     "BLE 已连接 可发送",
   )
   @test.assert_eq(
-    ui_text_with(ui_text_ble_status, ble_keyboard_sending, 0), "正在输入密码...",
+    ui_text_with(ui_text_ble_status, ble_keyboard_sending, 0),
+    "正在输入密码...",
   )
   @test.assert_eq(
-    ui_text_with(ui_text_ble_status, ble_keyboard_sent, 0), "密码已发送",
+    ui_text_with(ui_text_ble_status, ble_keyboard_sent, 0),
+    "密码已发送",
   )
   @test.assert_eq(
     ui_text_with(ui_text_ble_status, ble_keyboard_released, 0),
@@ -103,7 +120,8 @@ test "every BLE status has its own sentence" {
   )
   // error 与任何未知状态都读作不可用。
   @test.assert_eq(
-    ui_text_with(ui_text_ble_status, ble_keyboard_error, 0), "BLE 不可用",
+    ui_text_with(ui_text_ble_status, ble_keyboard_error, 0),
+    "BLE 不可用",
   )
   @test.assert_eq(ui_text_with(ui_text_ble_status, 42, 0), "BLE 不可用")
 }
@@ -124,10 +142,14 @@ test "battery, entropy and button labels" {
 
 ///|
 test "result area wording is fixed" {
-  @test.assert_eq(ui_text_with(ui_text_result_failure, 0, 0), "生成失败 请重试")
+  @test.assert_eq(
+    ui_text_with(ui_text_result_failure, 0, 0),
+    "生成失败 请重试",
+  )
   @test.assert_eq(ui_text_with(ui_text_result_done, 0, 0), "已生成")
   @test.assert_eq(
-    ui_text_with(ui_text_result_placeholder, 0, 0), "OK -> Generate",
+    ui_text_with(ui_text_result_placeholder, 0, 0),
+    "OK -> Generate",
   )
 }
 
@@ -145,22 +167,27 @@ test "settings names, values and hints" {
   @test.assert_eq(ui_text_with(ui_text_settings_value, 1, 1), "ON")
   @test.assert_eq(ui_text_with(ui_text_settings_value, 1, 0), "OFF")
   @test.assert_eq(
-    ui_text_with(ui_text_settings_value, 2, policy_profile_compatible), "Compat",
+    ui_text_with(ui_text_settings_value, 2, policy_profile_compatible),
+    "Compat",
   )
   @test.assert_eq(
-    ui_text_with(ui_text_settings_value, 2, policy_profile_standard), "Standard",
+    ui_text_with(ui_text_settings_value, 2, policy_profile_standard),
+    "Standard",
   )
   @test.assert_eq(
-    ui_text_with(ui_text_settings_value, 2, policy_profile_strict), "Strict",
+    ui_text_with(ui_text_settings_value, 2, policy_profile_strict),
+    "Strict",
   )
   @test.assert_eq(ui_text_with(ui_text_settings_value, 3, 1), "ON")
   @test.assert_eq(ui_text_with(ui_text_settings_value, 4, 0), "RUN")
 
   @test.assert_eq(
-    ui_text_with(ui_text_settings_hint, 0, 0), "OK: change   LONG: back",
+    ui_text_with(ui_text_settings_hint, 0, 0),
+    "OK: change   LONG: back",
   )
   @test.assert_eq(
-    ui_text_with(ui_text_settings_hint, 1, 0), "LONG: cancel / back",
+    ui_text_with(ui_text_settings_hint, 1, 0),
+    "LONG: cancel / back",
   )
 }
 
@@ -171,19 +198,22 @@ test "diagnostic wording splits into status, progress and detail" {
     "Checking...",
   )
   @test.assert_eq(
-    ui_text_with(ui_text_diagnostic_status, diagnostic_status_passed, 0), "PASS",
+    ui_text_with(ui_text_diagnostic_status, diagnostic_status_passed, 0),
+    "PASS",
   )
   @test.assert_eq(
     ui_text_with(ui_text_diagnostic_status, diagnostic_status_cancelled, 0),
     "Canceled",
   )
   @test.assert_eq(
-    ui_text_with(ui_text_diagnostic_status, diagnostic_status_failed, 0), "FAIL",
+    ui_text_with(ui_text_diagnostic_status, diagnostic_status_failed, 0),
+    "FAIL",
   )
   @test.assert_eq(ui_text_with(ui_text_diagnostic_status, 9, 0), "")
 
   @test.assert_eq(
-    ui_text_with(ui_text_diagnostic_progress, 8, 32), "8 / 32 samples",
+    ui_text_with(ui_text_diagnostic_progress, 8, 32),
+    "8 / 32 samples",
   )
 
   @test.assert_eq(
@@ -231,7 +261,8 @@ test "every declared text kind renders something with representative arguments" 
   for sample in samples {
     @test.assert_eq(sample.0, index)
     @test.assert_eq(
-      ui_text_with(sample.0, sample.1, sample.2).length() > 0, true,
+      ui_text_with(sample.0, sample.1, sample.2).length() > 0,
+      true,
     )
     index = index + 1
   }
