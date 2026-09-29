@@ -15,7 +15,8 @@ building or owning FoloToy hardware.
 | Reproducible README | The root README gives the goal, `moon add` installation, package import, CLI commands, browser instructions, and consumer links. |
 | CI check/build/test | `static-checks.yml` and `firmware-checks.yml` call the shared `tools/validate.sh` gates. |
 | Runnable examples | CLI, browser, separate-module consumer, and FoloToy firmware examples are included. |
-| Core tests | 122 MoonBit tests plus Python host tests cover generation, validation, entropy, consumers, adapters, and firmware layout. |
+| Core tests | 122 MoonBit tests (12 portable library, 3 CLI, 2 browser command, 2 separate-module consumer, 103 firmware adapter) plus 21 Python host tests cover generation, validation, entropy, consumers, adapters, and firmware layout. |
+| MoonBit implementation scale | `python tools/check_repo.py` reports 3,632 effective production MoonBit lines (775 root library plus 2,857 firmware adapter) against a 1,000-line floor; 4,883 physical production `.mbt` lines. |
 | Mooncakes | `zhangsan2000w-art/moonbit-securegen@0.1.1` is installable with `moon add`. |
 | OSI license and attribution | Root code uses MIT; the upstream FoloToy MIT notice is retained, and the EFF wordlist, Noto Sans SC, and MoonBit runtime notices are documented. |
 
@@ -65,6 +66,8 @@ moon test -p zhangsan2000w-art/moonbit-securegen/cmd/securegen \
 moon -C examples/consumer test --target wasm-gc --release --deny-warn
 moon test -p zhangsan2000w-art/moonbit-securegen/cmd/web \
   --target js --release --deny-warn
+MOONBIT_NEW_NATIVE=0 moon test \
+  -p zhangsan2000w-art/moonbit-securegen-folotoy --target native --release
 moon build --target js --release --deny-warn
 node examples/web/smoke.mjs
 moon run src/cmd/securegen --target js --release -- \
@@ -72,10 +75,14 @@ moon run src/cmd/securegen --target js --release -- \
 python tools/check_repo.py
 ```
 
-The first command exercises the portable engine, the second checks application
-argument and policy behavior, the third performs a live generation journey with
-host cryptographic entropy, and the fourth verifies repository boundaries and
-effective MoonBit implementation size.
+Each `moon test` command prints its own total: 12 portable library tests,
+3 CLI tests, 2 separate-module consumer tests, 2 browser-command tests, and 103
+firmware-adapter tests. The native adapter suite needs a host C compiler; on
+Windows use a MinGW `gcc` and keep an unusable `cl` off `PATH`.
+`node examples/web/smoke.mjs` exercises the generated browser bundle, the
+`moon run` command performs a live generation journey with host cryptographic
+entropy, and `python tools/check_repo.py` verifies repository boundaries and
+prints the effective MoonBit implementation size.
 
 ## Verify the embedded consumer
 
