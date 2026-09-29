@@ -19,7 +19,7 @@ building or owning FoloToy hardware. The one-page submission brief is
 | Core tests | 122 MoonBit tests (12 portable library, 3 CLI, 2 browser command, 2 separate-module consumer, 103 firmware adapter) plus 21 Python host tests cover generation, validation, entropy, consumers, adapters, and firmware layout. |
 | MoonBit implementation scale | `python tools/check_repo.py` reports 3,632 effective production MoonBit lines (775 root library plus 2,857 firmware adapter) against a 1,000-line floor; 4,883 physical production `.mbt` lines. |
 | Mooncakes | `zhangsan2000w-art/moonbit-securegen@0.1.1` is installable with `moon add`. |
-| OSI license and attribution | Root code uses MIT; the upstream FoloToy MIT notice is retained, and the EFF wordlist, Noto Sans SC, and MoonBit runtime notices are documented. |
+| OSI license and attribution | Root code uses MIT; the upstream FoloToy MIT notice is retained, and the EFF wordlist, Noto Sans SC, and MoonBit runtime notices are documented. [APPLICATION.md](APPLICATION.md#sources-porting-and-licenses) lists each origin together with the tracked file that carries its notice. |
 
 ## What is the reusable artifact?
 

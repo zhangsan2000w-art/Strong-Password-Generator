@@ -128,6 +128,8 @@ C 只保留 ESP-IDF/BSP 初始化、LVGL 控件绘制、I2C 原始读数、FreeR
 上游 FoloToy AI Passport 项目采用 MIT License。
 本仓库继续保留其原始版权与许可证声明。
 
+各组件的来源、许可证，以及承载对应声明的仓库内文件，逐项清单见[一页申报材料](docs/competition/APPLICATION.zh_CN.md#来源移植与许可证)。
+
 本仓库在此基础上新增了面向 MoonBit Hackathon 2026 的 MoonBit 密码生成核心、产品逻辑、交互设计、UI、测试、文档及相关固件修改。
 
 ## 工具链

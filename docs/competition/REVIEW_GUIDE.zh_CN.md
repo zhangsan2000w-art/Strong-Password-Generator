@@ -17,7 +17,7 @@
 | 核心测试 | 122 项 MoonBit 测试（可移植根库 12、CLI 3、浏览器命令 2、独立模块消费者 2、固件适配层 103）及 21 项 Python 主机测试覆盖生成、校验、熵、消费者、适配器与固件布局。 |
 | MoonBit 实现规模 | `python tools/check_repo.py` 报告有效生产 MoonBit 3,632 行（根库 775 + 固件适配层 2,857），下限为 1,000 行；物理生产 `.mbt` 为 4,883 行。 |
 | Mooncakes | `zhangsan2000w-art/moonbit-securegen@0.1.1` 可通过 `moon add` 安装。 |
-| OSI 许可证与署名 | 根代码使用 MIT；保留 FoloToy 上游 MIT 声明，并记录 EFF 词库、Noto Sans SC 与 MoonBit runtime 的许可证。 |
+| OSI 许可证与署名 | 根代码使用 MIT；保留 FoloToy 上游 MIT 声明，并记录 EFF 词库、Noto Sans SC 与 MoonBit runtime 的许可证。各来源以及承载对应声明的仓库内文件见 [APPLICATION.zh_CN.md](APPLICATION.zh_CN.md#来源移植与许可证)。 |
 
 ## 可复用产物是什么？
 

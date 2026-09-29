@@ -72,16 +72,34 @@ C 侧继续承担 BSP、LVGL、NimBLE 传输、NVS、编解码器等硬件胶水
 | --- | --- | --- |
 | MoonBit 项目身份 | 已核实 | 根模块就是 MoonBit 库；`tools/check_repo.py` 在生产有效行数低于 1,000 时直接判失败。 |
 | 有效 MoonBit 超过 1,000 行 | 已核实 | 本机 `python tools/check_repo.py` 报告 3,632 行。 |
-| 赛期提交与可用 MVP | 已核实 | 42 次提交；MVP 即库加 CLI 与浏览器页面，按 `REVIEW_GUIDE.md` 命令无需硬件即可运行。 |
+| 赛期提交与可用 MVP | 已核实数量与日期，窗口未核对 | 42 次提交，日期跨度 2026-08-07 至 2026-09-29；MoonBit 库、CLI 与浏览器页面构成的 MVP 按 `REVIEW_GUIDE.md` 的命令无需硬件即可运行。这些日期是否落在主办方的赛期窗口内，属于维护者需要自行确认的事项，不是仓库可自证的事实。 |
 | 根库不依赖 C FFI、BLE、LVGL、NVS | 已核实 | `src/moon.pkg` 仅导入 `moonbitlang/core/debug` 与测试用 `core/test`；`src/api.mbt`、`src/typed_api.mbt` 无 `extern`。 |
 | Mooncakes 0.1.1 | 部分核实 | `moon.mod` 声明 `0.1.1`，[`VERSIONING.zh_CN.md`](../api/VERSIONING.zh_CN.md) 定义发布约定；本次未查询注册中心，发布是维护者的手工动作。 |
 | Native、Wasm、CLI、Web、consumer、测试与 CI | 已按运行核实，但有一个工具链前提 | 五个套件本机全部通过。`./tools/validate.sh --static` 在本机会中止，因为已安装的 `moonc` 为 0.10.12，而门槛要求 0.10.14；该门槛由 [`static-checks.yml`](../../.github/workflows/static-checks.yml) 在 CI 强制执行。提交前请先升级本机工具链再复跑。 |
 | ESP-IDF 固件构建 | 本次未重跑 | 需要激活 ESP-IDF 5.5.3，执行 `./tools/validate.sh --firmware`。 |
 | 真机验收 | 未验证 | BLE 配对与键盘输入、显示、字体、按键、电池与持久化仍属真机检查；构建通过不等于设备通过。 |
 
+## 来源、移植与许可证
+
+项目自有代码为 MIT。下表中的其它组件要么承自上游，要么在构建时拉取，且每一项都能在
+本仓库内找到对应声明。
+
+| 组件 | 来源 | 许可证 | 仓库内声明 |
+| --- | --- | --- | --- |
+| MoonBit 库、CLI、浏览器页面、consumer 模块、适配层逻辑、测试、文档 | 本项目自行编写，AI 协助情况见 [AI_USAGE.zh_CN.md](../application/AI_USAGE.zh_CN.md) | MIT | [`LICENSE`](../../LICENSE) |
+| FoloToy AI Passport 固件、BSP、组件、硬件文档 | 上游 `FoloToy/ai-passport`（Gitee 与 GitHub），由提交 `5f19183` 原样迁移到 `examples/folotoy-ai-passport` | MIT | 保留的 [`LICENSE`](../../LICENSE)，其中仍写明 `Copyright (c) 2026 FoloToy`，另见根 README 的上游说明 |
+| EFF Short Wordlist for Passphrases #1，共 1,296 条 | 电子前哨基金会 EFF | CC BY 3.0 US | 原文收录于 [`assets/wordlists/eff-short-wordlist-1.txt`](../../assets/wordlists/eff-short-wordlist-1.txt)，根 README 记录其 SHA-256 `8f5ca830b8bffb6fe39c9736c024a00a6a6411adb3f83a9be8bfeeb6e067ae69`，并由 `tools/generate_wordlist.py` 展开为 Flash 常量表 |
+| Noto Sans SC | Google | SIL Open Font License 1.1 | 声明收录于 [`assets/fonts/NotoSansSC-OFL.txt`](../../assets/fonts/NotoSansSC-OFL.txt)；派生的 LVGL 字模 `examples/folotoy-ai-passport/main/passport_font_zh_16.c` 已在 [`.gitattributes`](../../.gitattributes) 中标记为生成物 |
+| MoonBit native runtime 的 C 头文件与 `runtime.c` | 随 MoonBit 工具链分发的 native runtime，为 ESP-IDF 构建而内嵌 | Apache-2.0 | [`examples/folotoy-ai-passport/components/moonbit_password/RUNTIME_LICENSE.txt`](../../examples/folotoy-ai-passport/components/moonbit_password/RUNTIME_LICENSE.txt)，`runtime/` 目录在 [`.gitattributes`](../../.gitattributes) 中标记为 vendored |
+| LVGL 与 4 个 Espressif 组件 | ESP-IDF 组件管理器，在构建时解析 | LVGL 为 MIT；Espressif 组件为 Apache-2.0 | 不入库：`managed_components/` 已被 [`.gitignore`](../../.gitignore) 忽略，每次构建都会重新拉取并自带许可证文件 |
+
+产品逻辑从 C 迁移到 MoonBit 的提交为：`bda1591`（可复用生成引擎）、`115be24` 与
+`b14c669`（其余界面文案、最后一块仅测试用途的逻辑）、`d29460c`（类型化凭据
+API）。C 侧目前只保留 BSP 与 ESP-IDF 初始化、LVGL 控件调用、NimBLE 传输、NVS 访问、
+编解码器写入以及平台随机数源。
+
 ## 主张边界
 
 本文件只描述 `Strong-Password-Generator_AI-Passport` 仓库。它不代表、不吸收、也不
 替代 `ai-passport-codex-buddy` 的独立评审结论；那个报名有它自己的历史与驳回理由。
-项目自有代码采用 MIT，上游与第三方声明见本文下一节以及根目录
-[LICENSE](../../LICENSE)。
+项目自有代码采用 MIT，上游与第三方声明见上表以及根目录 [LICENSE](../../LICENSE)。

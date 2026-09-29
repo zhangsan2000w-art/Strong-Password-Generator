@@ -139,6 +139,8 @@ This project is built on the open-source [FoloToy AI Passport](https://github.co
 The upstream FoloToy AI Passport project is licensed under the MIT License.
 Its original copyright and license notices are retained in this repository.
 
+A component-by-component list of origins, licenses, and the tracked file that carries each notice is in the [submission brief](docs/competition/APPLICATION.md#sources-porting-and-licenses).
+
 This repository adds the MoonBit-based password generator, product logic, interaction design, UI, tests, documentation, and related firmware modifications for MoonBit Hackathon 2026.
 
 ## Toolchains
