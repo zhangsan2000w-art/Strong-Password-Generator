@@ -74,7 +74,7 @@ C 侧继续承担 BSP、LVGL、NimBLE 传输、NVS、编解码器等硬件胶水
 | 有效 MoonBit 超过 1,000 行 | 已核实 | 本机 `python tools/check_repo.py` 报告 3,632 行。 |
 | 赛期提交与可用 MVP | 已核实数量与日期，窗口未核对 | 42 次提交，日期跨度 2026-08-07 至 2026-09-29；MoonBit 库、CLI 与浏览器页面构成的 MVP 按 `REVIEW_GUIDE.md` 的命令无需硬件即可运行。这些日期是否落在主办方的赛期窗口内，属于维护者需要自行确认的事项，不是仓库可自证的事实。 |
 | 根库不依赖 C FFI、BLE、LVGL、NVS | 已核实 | `src/moon.pkg` 仅导入 `moonbitlang/core/debug` 与测试用 `core/test`；`src/api.mbt`、`src/typed_api.mbt` 无 `extern`。 |
-| Mooncakes 0.1.1 | 部分核实 | `moon.mod` 声明 `0.1.1`，[`VERSIONING.zh_CN.md`](../api/VERSIONING.zh_CN.md) 定义发布约定；本次未查询注册中心，发布是维护者的手工动作。 |
+| Mooncakes 0.1.1 | 已核实 | 在全新 scratch 模块中执行 `moon add zhangsan2000w-art/moonbit-securegen`，本机已从注册中心解析并下载 `0.1.1`。缓存产物内含 `moon.mod`（`version = "0.1.1"`）、`src/api.mbt`、`src/typed_api.mbt`、`src/moon.pkg`、两个命令包、consumer 与浏览器示例以及 `LICENSE`，不含固件、tools 或 workflow 文件。[`VERSIONING.zh_CN.md`](../api/VERSIONING.zh_CN.md) 定义发布约定。 |
 | Native、Wasm、CLI、Web、consumer、测试与 CI | 已按运行核实，但有一个工具链前提 | 五个套件本机全部通过。`./tools/validate.sh --static` 在本机会中止，因为已安装的 `moonc` 为 0.10.12，而门槛要求 0.10.14；该门槛由 [`static-checks.yml`](../../.github/workflows/static-checks.yml) 在 CI 强制执行。提交前请先升级本机工具链再复跑。 |
 | ESP-IDF 固件构建 | 本次未重跑 | 需要激活 ESP-IDF 5.5.3，执行 `./tools/validate.sh --firmware`。 |
 | 真机验收 | 未验证 | BLE 配对与键盘输入、显示、字体、按键、电池与持久化仍属真机检查；构建通过不等于设备通过。 |

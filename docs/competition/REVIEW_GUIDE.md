@@ -11,14 +11,14 @@ building or owning FoloToy hardware. The one-page submission brief is
 | Requirement | Repository evidence |
 | --- | --- |
 | MoonBit-first, `moonc >= 0.10.14` | The root library and product policy are MoonBit; `tools/check_moonc_version.py` is a hard static/CI gate. Generated font C and the vendored runtime are identified through `.gitattributes`. |
-| Public repository and history | The public GitHub repository preserves focused Conventional Commit history. |
+| Public repository and history | The GitHub remote keeps focused Conventional Commit history. Repository visibility is an account setting, so confirm that reviewers can reach it before submitting. |
 | Clear source and working core | `src` is the portable library; adapters and applications are under `src/cmd` and `examples`. |
 | Reproducible README | The root README gives the goal, `moon add` installation, package import, CLI commands, browser instructions, and consumer links. |
 | CI check/build/test | `static-checks.yml` and `firmware-checks.yml` call the shared `tools/validate.sh` gates. |
 | Runnable examples | CLI, browser, separate-module consumer, and FoloToy firmware examples are included. |
 | Core tests | 122 MoonBit tests (12 portable library, 3 CLI, 2 browser command, 2 separate-module consumer, 103 firmware adapter) plus 21 Python host tests cover generation, validation, entropy, consumers, adapters, and firmware layout. |
 | MoonBit implementation scale | `python tools/check_repo.py` reports 3,632 effective production MoonBit lines (775 root library plus 2,857 firmware adapter) against a 1,000-line floor; 4,883 physical production `.mbt` lines. |
-| Mooncakes | `zhangsan2000w-art/moonbit-securegen@0.1.1` is installable with `moon add`. |
+| Mooncakes | `zhangsan2000w-art/moonbit-securegen@0.1.1` is installable with `moon add`; a scratch module on this machine resolved and downloaded exactly that version from the registry. |
 | OSI license and attribution | Root code uses MIT; the upstream FoloToy MIT notice is retained, and the EFF wordlist, Noto Sans SC, and MoonBit runtime notices are documented. [APPLICATION.md](APPLICATION.md#sources-porting-and-licenses) lists each origin together with the tracked file that carries its notice. |
 
 ## What is the reusable artifact?
