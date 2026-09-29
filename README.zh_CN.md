@@ -10,6 +10,7 @@
 `zhangsan2000w-art/moonbit-securegen`，而不依赖 ESP-IDF、FoloToy、LVGL、BLE、
 文件系统或网络。
 
+一页申报材料见 [SecureGen for MoonBit 申报说明](docs/competition/APPLICATION.zh_CN.md)。
 审查时可先阅读[审查者快速验证指南](docs/competition/REVIEW_GUIDE.zh_CN.md)，再运行：
 
 ```bash
@@ -228,6 +229,8 @@ python -m esptool --chip esp32c3 --baud 460800 \
 
 ## API、版本、设计与安全
 
+- [一页申报材料](docs/competition/APPLICATION.zh_CN.md)
+- [审查者快速验证指南](docs/competition/REVIEW_GUIDE.zh_CN.md)
 - [公开 API 指南](docs/api/README.zh_CN.md)
 - [语义化版本与 Mooncakes 发布约定](docs/api/VERSIONING.zh_CN.md)
 - [架构与决策记录](docs/application/ARCHITECTURE.zh_CN.md)

@@ -12,7 +12,9 @@ boundary itself. Consumers can import `zhangsan2000w-art/moonbit-securegen`
 without ESP-IDF,
 FoloToy, LVGL, BLE, a filesystem, or network access.
 
-For a short evaluation path, see the
+For the one-page submission brief, see
+[SecureGen for MoonBit](docs/competition/APPLICATION.md). For a short evaluation
+path, see the
 [reviewer guide](docs/competition/REVIEW_GUIDE.md), then run:
 
 ```bash
@@ -241,6 +243,8 @@ Flashing the merged image at `0x0` can reset the NVS region. After initial provi
 
 ## API, versioning, design, and security
 
+- [One-page submission brief](docs/competition/APPLICATION.md)
+- [Reviewer guide](docs/competition/REVIEW_GUIDE.md)
 - [Public API guide](docs/api/README.md)
 - [Semantic versioning and Mooncakes release contract](docs/api/VERSIONING.md)
 - [Architecture and decision record](docs/application/ARCHITECTURE.md)

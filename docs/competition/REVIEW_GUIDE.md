@@ -3,7 +3,8 @@
 English | [简体中文](REVIEW_GUIDE.zh_CN.md)
 
 This is the shortest path for evaluating the MoonBit work without first
-building or owning FoloToy hardware.
+building or owning FoloToy hardware. The one-page submission brief is
+[APPLICATION.md](APPLICATION.md).
 
 ## Acceptance evidence
 
