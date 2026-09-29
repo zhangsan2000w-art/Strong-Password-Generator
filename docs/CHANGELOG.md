@@ -57,3 +57,8 @@
 - Updated software-design and project README references for the new documentation structure.
 - Added the documentation catalog and task-triggered routing based on the earlier repository model.
 - Added bilingual contribution, code-of-conduct, security, and support documents tailored to this ESP-IDF and fork workflow.
+
+## 0.1.1 - 2026-09-29
+
+- Added explicit derived-interface method exports and corrected white-box test declarations for clean `moonc 0.10.14 --deny-warn` builds without changing the public API.
+- Preserved the FoloToy adapter's narrower password and PIN length limits while keeping the reusable library's broader policy range.

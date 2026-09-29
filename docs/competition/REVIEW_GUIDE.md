@@ -16,7 +16,7 @@ building or owning FoloToy hardware.
 | CI check/build/test | `static-checks.yml` and `firmware-checks.yml` call the shared `tools/validate.sh` gates. |
 | Runnable examples | CLI, browser, separate-module consumer, and FoloToy firmware examples are included. |
 | Core tests | 122 MoonBit tests plus Python host tests cover generation, validation, entropy, consumers, adapters, and firmware layout. |
-| Mooncakes | `zhangsan2000w-art/moonbit-securegen@0.1.0` is installable with `moon add`. |
+| Mooncakes | `zhangsan2000w-art/moonbit-securegen@0.1.1` is installable with `moon add`. |
 | OSI license and attribution | Root code uses MIT; the upstream FoloToy MIT notice is retained, and the EFF wordlist, Noto Sans SC, and MoonBit runtime notices are documented. |
 
 ## What is the reusable artifact?

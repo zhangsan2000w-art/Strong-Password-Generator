@@ -3,7 +3,7 @@
 [English](README.md) | 简体中文
 
 本模块与可发布的根模块彼此独立。它的 `moon.mod` 声明
-`zhangsan2000w-art/moonbit-securegen@0.1.0`，与外部项目执行下列命令后的依赖形态
+`zhangsan2000w-art/moonbit-securegen@0.1.1`，与外部项目执行下列命令后的依赖形态
 一致：
 
 ```bash

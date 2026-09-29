@@ -3,7 +3,7 @@ name = "zhangsan2000w-art/moonbit-securegen-consumer"
 version = "0.1.0"
 
 import {
-  "zhangsan2000w-art/moonbit-securegen@0.1.0",
+  "zhangsan2000w-art/moonbit-securegen@0.1.1",
 }
 
 readme = "README.md"

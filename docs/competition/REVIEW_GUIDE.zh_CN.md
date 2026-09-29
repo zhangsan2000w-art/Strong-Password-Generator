@@ -15,7 +15,7 @@
 | CI 检查／构建／测试 | `static-checks.yml` 与 `firmware-checks.yml` 调用共享的 `tools/validate.sh` 门禁。 |
 | 可运行示例 | 包含 CLI、浏览器、独立模块 consumer 和 FoloToy 固件示例。 |
 | 核心测试 | 122 项 MoonBit 测试及 Python 主机测试覆盖生成、校验、熵、消费者、适配器与固件布局。 |
-| Mooncakes | `zhangsan2000w-art/moonbit-securegen@0.1.0` 可通过 `moon add` 安装。 |
+| Mooncakes | `zhangsan2000w-art/moonbit-securegen@0.1.1` 可通过 `moon add` 安装。 |
 | OSI 许可证与署名 | 根代码使用 MIT；保留 FoloToy 上游 MIT 声明，并记录 EFF 词库、Noto Sans SC 与 MoonBit runtime 的许可证。 |
 
 ## 可复用产物是什么？

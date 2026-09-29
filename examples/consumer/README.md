@@ -3,7 +3,7 @@
 English | [简体中文](README.zh_CN.md)
 
 This module is intentionally separate from the publishable root module. Its
-`moon.mod` declares `zhangsan2000w-art/moonbit-securegen@0.1.0`, the same shape
+`moon.mod` declares `zhangsan2000w-art/moonbit-securegen@0.1.1`, the same shape
 that an external project uses after running:
 
 ```bash
