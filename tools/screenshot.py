@@ -113,10 +113,20 @@ def capture(port: str, baud: int, output: Path, timeout: float) -> tuple[int, in
         device.write(COMMAND)
         device.flush()
         deadline = time.monotonic() + timeout
-        header = device.readline()
-        if not header:
+        # Skip stray log lines: the device may emit firmware logs around the
+        # capture window; resync on the first line that parses as a header.
+        width = height = size = None
+        while time.monotonic() < deadline:
+            line = device.readline()
+            if not line:
+                continue
+            try:
+                width, height, size = parse_header(line)
+                break
+            except ValueError:
+                continue
+        if width is None:
             raise TimeoutError("device did not answer (check the port / firmware)")
-        width, height, size = parse_header(header)
         payload = read_exact(device, size, deadline)
     rows = rgb565le_to_rows(payload, width, height)
     write_png(output, width, height, rows)
