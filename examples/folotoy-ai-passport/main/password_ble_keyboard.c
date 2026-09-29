@@ -78,6 +78,11 @@ static uint16_t s_connection_handle = BLE_HS_CONN_HANDLE_NONE;
 static uint8_t s_address_type;
 static bool s_address_ready;
 static TickType_t s_last_advertising_attempt;
+/* Tick when a freshly connected link first still needed encryption, or 0 when
+ * there is no such pending link. The pairing watchdog uses it to detect a link
+ * that connects but never completes security (stale bond after the peer forgot
+ * us) so the device can recover without a re-flash. */
+static volatile TickType_t s_pending_pairing_tick;
 
 void ble_store_config_init(void);
 
@@ -144,6 +149,57 @@ static int terminate_connection(void)
         ESP_LOGW(TAG, "Failed to release HID connection: rc=%d", rc);
     }
     return rc;
+}
+
+static void arm_pairing_watchdog(void)
+{
+    portENTER_CRITICAL(&s_state_lock);
+    if (s_pending_pairing_tick == 0) {
+        s_pending_pairing_tick = xTaskGetTickCount();
+    }
+    portEXIT_CRITICAL(&s_state_lock);
+}
+
+static void disarm_pairing_watchdog(void)
+{
+    portENTER_CRITICAL(&s_state_lock);
+    s_pending_pairing_tick = 0;
+    portEXIT_CRITICAL(&s_state_lock);
+}
+
+/* Returns true once MoonBit decides the connected-but-unencrypted link has
+ * waited past the pairing timeout. Runs on the caller's tick reading. */
+static bool pairing_watchdog_expired(TickType_t now)
+{
+    int32_t link_state;
+    TickType_t since;
+    portENTER_CRITICAL(&s_state_lock);
+    link_state = s_link_state;
+    since = s_pending_pairing_tick;
+    portEXIT_CRITICAL(&s_state_lock);
+    if (since == 0) return false;
+    int32_t elapsed_ms = (int32_t)((now - since) * portTICK_PERIOD_MS);
+    return passport_moonbit_ble_keyboard_pairing_stalled(link_state, elapsed_ms) != 0;
+}
+
+/* Drop the peer's stored bond and tear the link down so the next connection is
+ * a clean Just Works pairing. The disconnect event clears link state and the
+ * poll loop resumes advertising on its own. */
+static void forget_peer_and_release(uint16_t handle)
+{
+    if (handle == BLE_HS_CONN_HANDLE_NONE) {
+        disarm_pairing_watchdog();
+        return;
+    }
+    struct ble_gap_conn_desc description;
+    if (ble_gap_conn_find(handle, &description) == 0) {
+        ble_store_util_delete_peer(&description.peer_id_addr);
+    }
+    disarm_pairing_watchdog();
+    int rc = ble_gap_terminate(handle, BLE_ERR_REM_USER_CONN_TERM);
+    if (rc != 0 && rc != BLE_HS_EALREADY && rc != BLE_HS_ENOTCONN) {
+        ESP_LOGW(TAG, "Failed to reset stale pairing: rc=%d", rc);
+    }
 }
 
 static void release_keyboard(void)
@@ -215,11 +271,13 @@ static int gap_event(struct ble_gap_event *event, void *argument)
         if (event->connect.status == 0) {
             set_connection_handle(event->connect.conn_handle);
             apply_link_event(PASSWORD_BLE_LINK_CONNECTED);
+            arm_pairing_watchdog();
             struct ble_gap_conn_desc description;
             uint16_t handle = connection_handle();
             int rc = ble_gap_conn_find(handle, &description);
             if (rc == 0 && description.sec_state.encrypted) {
                 apply_link_event(PASSWORD_BLE_LINK_ENCRYPTED);
+                disarm_pairing_watchdog();
                 break;
             }
             rc = ble_gap_security_initiate(handle);
@@ -228,12 +286,14 @@ static int gap_event(struct ble_gap_event *event, void *argument)
             }
         } else {
             set_connection_handle(BLE_HS_CONN_HANDLE_NONE);
+            disarm_pairing_watchdog();
             apply_link_event(PASSWORD_BLE_LINK_DISCONNECTED);
             set_status(PASSWORD_BLE_ERROR);
         }
         break;
     case BLE_GAP_EVENT_DISCONNECT:
         set_connection_handle(BLE_HS_CONN_HANDLE_NONE);
+        disarm_pairing_watchdog();
         apply_link_event(PASSWORD_BLE_LINK_DISCONNECTED);
         break;
     case BLE_GAP_EVENT_ADV_COMPLETE:
@@ -246,19 +306,20 @@ static int gap_event(struct ble_gap_event *event, void *argument)
     case BLE_GAP_EVENT_ENC_CHANGE:
         if (event->enc_change.status == 0) {
             apply_link_event(PASSWORD_BLE_LINK_ENCRYPTED);
+            disarm_pairing_watchdog();
         } else {
             apply_link_event(PASSWORD_BLE_LINK_ENCRYPTION_FAILED);
         }
         break;
     case BLE_GAP_EVENT_REPEAT_PAIRING: {
-        struct ble_gap_conn_desc description;
-        if (ble_gap_conn_find(
-                event->repeat_pairing.conn_handle, &description
-            ) == 0) {
-            ble_store_util_delete_peer(&description.peer_id_addr);
-            return BLE_GAP_REPEAT_PAIRING_RETRY;
-        }
-        break;
+        /* The peer forgot us and is asking to re-pair while we still hold a
+         * stale bond. This listener's return value is ignored by NimBLE (the
+         * primary GAP callback owns that decision), so we recover actively:
+         * drop the bond and terminate the link. The disconnect plus the poll
+         * loop bring advertising back for a clean pairing. */
+        ESP_LOGW(TAG, "Repeat pairing from stale bond; resetting it");
+        forget_peer_and_release(event->repeat_pairing.conn_handle);
+        return BLE_GAP_REPEAT_PAIRING_RETRY;
     }
     default:
         break;
@@ -498,6 +559,14 @@ void password_ble_keyboard_poll(void)
             (void)terminate_connection();
         }
         return;
+    }
+    {
+        TickType_t poll_tick = xTaskGetTickCount();
+        if (pairing_watchdog_expired(poll_tick)) {
+            ESP_LOGW(TAG, "Pairing timed out; dropping bond and re-advertising");
+            forget_peer_and_release(connection_handle());
+            return;
+        }
     }
     if (!passport_moonbit_ble_keyboard_should_advertise(
             password_ble_keyboard_status(), connected, advertising

@@ -257,6 +257,25 @@ pub fn passport_moonbit_ble_keyboard_link_ready(state : Int) -> Int {
 }
 
 ///|
+#export_name("passport_moonbit_ble_keyboard_pairing_timeout_ms")
+pub fn passport_moonbit_ble_keyboard_pairing_timeout_ms() -> Int {
+  ble_keyboard_pairing_timeout_ms
+}
+
+///|
+#export_name("passport_moonbit_ble_keyboard_pairing_stalled")
+pub fn passport_moonbit_ble_keyboard_pairing_stalled(
+  state : Int,
+  elapsed_ms : Int,
+) -> Int {
+  if ble_keyboard_pairing_stalled(state, elapsed_ms) {
+    1
+  } else {
+    0
+  }
+}
+
+///|
 #export_name("passport_moonbit_ble_keyboard_link_status")
 pub fn passport_moonbit_ble_keyboard_link_status(state : Int) -> Int {
   ble_keyboard_link_status(state)

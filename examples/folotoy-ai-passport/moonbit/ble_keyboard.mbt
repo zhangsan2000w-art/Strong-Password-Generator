@@ -32,6 +32,15 @@ pub let ble_keyboard_released : Int = 7
 pub let ble_keyboard_advertising_retry_ms : Int = 2000
 
 ///|
+/// How long the device waits for a freshly connected link to finish pairing and
+/// encryption before it assumes the security handshake is stuck. This covers the
+/// case where the peer "forgot" the device and reconnects with a bond the
+/// peripheral can no longer honour: the ACL link stays up but never becomes
+/// encrypted, so sending stays blocked forever. The recovery policy lives here
+/// so it stays deterministic and host-testable.
+pub let ble_keyboard_pairing_timeout_ms : Int = 8000
+
+///|
 /// Raw link events forwarded by the ESP-IDF adapter. MoonBit owns the
 /// reconnect state machine; C only reports what NimBLE observed.
 pub let ble_keyboard_link_connected : Int = 0
@@ -152,6 +161,19 @@ pub fn ble_keyboard_should_advertise(
   !advertising &&
   ble_keyboard_status_normalize(status) != ble_keyboard_starting &&
   ble_keyboard_status_normalize(status) != ble_keyboard_released
+}
+
+///|
+/// A link that is connected but has not finished encryption within
+/// `ble_keyboard_pairing_timeout_ms` is treated as a stuck pairing (stale bond
+/// after the peer forgot us, or an SMP handshake that silently failed). The
+/// adapter reacts by dropping the stored bond and re-advertising for a clean
+/// pairing, so the device no longer needs a re-flash to recover.
+pub fn ble_keyboard_pairing_stalled(state : Int, elapsed_ms : Int) -> Bool {
+  (state & ble_keyboard_link_released_mask) == 0 &&
+  (state & ble_keyboard_link_connected_mask) != 0 &&
+  (state & ble_keyboard_link_encrypted_mask) == 0 &&
+  elapsed_ms >= ble_keyboard_pairing_timeout_ms
 }
 
 ///|

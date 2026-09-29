@@ -164,3 +164,52 @@ test "BLE action reconnects a released keyboard before sending again" {
     ble_keyboard_action_disabled,
   )
 }
+
+///|
+test "BLE pairing watchdog fires only for a connected unencrypted link that stalls" {
+  @test.assert_eq(ble_keyboard_pairing_timeout_ms, 8000)
+  let connected = ble_keyboard_link_event(0, ble_keyboard_link_connected)
+  // Before the timeout the link is still given a chance to encrypt.
+  @test.assert_eq(
+    ble_keyboard_pairing_stalled(
+      connected, ble_keyboard_pairing_timeout_ms - 1,
+    ),
+    false,
+  )
+  // A connection that never encrypts is a stale bond and must be recovered.
+  @test.assert_eq(
+    ble_keyboard_pairing_stalled(connected, ble_keyboard_pairing_timeout_ms),
+    true,
+  )
+  // A failed encryption keeps the connected-but-unencrypted shape: recover it.
+  let failed = ble_keyboard_link_event(
+    connected, ble_keyboard_link_encryption_failed,
+  )
+  @test.assert_eq(
+    ble_keyboard_pairing_stalled(failed, ble_keyboard_pairing_timeout_ms),
+    true,
+  )
+  // An encrypted link is healthy and never stalls.
+  let encrypted = ble_keyboard_link_event(
+    connected, ble_keyboard_link_encrypted,
+  )
+  @test.assert_eq(
+    ble_keyboard_pairing_stalled(
+      encrypted, ble_keyboard_pairing_timeout_ms * 2,
+    ),
+    false,
+  )
+  // A deliberately released link is not a stall either.
+  let released = ble_keyboard_link_event(
+    encrypted, ble_keyboard_link_released,
+  )
+  @test.assert_eq(
+    ble_keyboard_pairing_stalled(released, ble_keyboard_pairing_timeout_ms * 2),
+    false,
+  )
+  // Idle/disconnected state must not trigger recovery.
+  @test.assert_eq(
+    ble_keyboard_pairing_stalled(0, ble_keyboard_pairing_timeout_ms * 3),
+    false,
+  )
+}
