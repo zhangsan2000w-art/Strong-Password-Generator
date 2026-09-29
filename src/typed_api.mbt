@@ -24,6 +24,12 @@ pub enum PassphraseSeparator {
 } derive(Eq, Debug)
 
 ///|
+pub extend PassphraseSeparator with Eq::{not_equal, equal}
+
+///|
+pub extend PassphraseSeparator with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
 pub fn PassphraseSeparator::hyphen() -> PassphraseSeparator {
   Hyphen
 }
@@ -222,6 +228,12 @@ pub enum Strength {
   Strong
   VeryStrong
 } derive(Eq, Debug)
+
+///|
+pub extend Strength with Eq::{not_equal, equal}
+
+///|
+pub extend Strength with @moonbitlang/core/debug.Debug::{to_repr}
 
 ///|
 pub fn Strength::unknown() -> Strength {
