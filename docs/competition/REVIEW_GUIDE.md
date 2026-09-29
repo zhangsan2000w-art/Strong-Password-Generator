@@ -102,10 +102,13 @@ bounds.
 
 - Portable engine tests and CLI tests are host evidence.
 - A successful ESP-IDF build and merged-image check are build evidence.
-- On a physical AI Passport the current image was observed booting to
-  `ble_keyboard=1`, advertising as `FoloPassKey`, rendering the panel and the CJK
-  subset, and answering repeated `FAP_SCREENSHOT_V1` requests while the keyboard
-  stayed advertising.
+- On a physical AI Passport the band-stream build (`46a370e`) was observed
+  booting to `ble_keyboard=1`, advertising as `FoloPassKey`, rendering the panel
+  and the CJK subset, and answering repeated `FAP_SCREENSHOT_V1` requests while
+  the keyboard stayed advertising.
+- The pairing watchdog and the released-keyboard label glyphs on top of that
+  build have host tests and a clean firmware build behind them, but the newer
+  image has not been flashed yet.
 - Pairing with a real host, reconnect and bond persistence, exact HID typing, the
   button gestures, the Settings screen, and preference persistence across reboot
   are not covered by any of the above and still need a phone and a hand.

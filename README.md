@@ -264,10 +264,13 @@ library, CLI, browser, cross-package, firmware-adapter, and 25 Python tests (11
 firmware-layout, 11 screenshot conversion, 3 compiler-version gate), and
 builds and verifies the merged ESP-IDF image.
 
-On a physical AI Passport the current image boots to
-`Ready: secure_random=1 buttons=1 ble_keyboard=1`, advertises as `FoloPassKey`,
-renders both the panel and the CJK subset correctly, and answers
-`FAP_SCREENSHOT_V1` repeatedly while the keyboard stays advertising. Still
+On a physical AI Passport the band-stream build (`46a370e`) booted to
+`Ready: secure_random=1 buttons=1 ble_keyboard=1`, advertised as `FoloPassKey`,
+rendered both the panel and the CJK subset correctly, and answered
+`FAP_SCREENSHOT_V1` repeatedly while the keyboard stayed advertising. The two
+ports on top of it — the pairing watchdog and the released-keyboard label
+glyphs — are build-verified only; the device was unplugged before that image
+could be flashed. Still
 requiring a phone and a hand: pairing and HID typing into a host, the three
 button gestures, the dual-theme Settings screen, preference persistence across
 reboot, the sound toggle, and battery behaviour over time.
