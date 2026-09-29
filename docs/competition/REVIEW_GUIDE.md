@@ -16,8 +16,8 @@ building or owning FoloToy hardware. The one-page submission brief is
 | Reproducible README | The root README gives the goal, `moon add` installation, package import, CLI commands, browser instructions, and consumer links. |
 | CI check/build/test | `static-checks.yml` and `firmware-checks.yml` call the shared `tools/validate.sh` gates. |
 | Runnable examples | CLI, browser, separate-module consumer, and FoloToy firmware examples are included. |
-| Core tests | 122 MoonBit tests (12 portable library, 3 CLI, 2 browser command, 2 separate-module consumer, 103 firmware adapter) plus 21 Python host tests cover generation, validation, entropy, consumers, adapters, and firmware layout. |
-| MoonBit implementation scale | `python tools/check_repo.py` reports 3,632 effective production MoonBit lines (775 root library plus 2,857 firmware adapter) against a 1,000-line floor; 4,883 physical production `.mbt` lines. |
+| Core tests | 138 MoonBit tests (12 portable library, 3 CLI, 2 browser command, 2 separate-module consumer, 119 firmware adapter) plus 21 Python host tests cover generation, validation, entropy, consumers, adapters, capture bands, and firmware layout. |
+| MoonBit implementation scale | `python tools/check_repo.py` reports 3,799 effective production MoonBit lines (775 root library plus 3,024 firmware adapter) against a 1,000-line floor; 5,187 physical production `.mbt` lines. |
 | Mooncakes | `zhangsan2000w-art/moonbit-securegen@0.1.1` is installable with `moon add`; a scratch module on this machine resolved and downloaded exactly that version from the registry. |
 | OSI license and attribution | Root code uses MIT; the upstream FoloToy MIT notice is retained, and the EFF wordlist, Noto Sans SC, and MoonBit runtime notices are documented. [APPLICATION.md](APPLICATION.md#sources-porting-and-licenses) lists each origin together with the tracked file that carries its notice. |
 
@@ -77,7 +77,7 @@ python tools/check_repo.py
 ```
 
 Each `moon test` command prints its own total: 12 portable library tests,
-3 CLI tests, 2 separate-module consumer tests, 2 browser-command tests, and 103
+3 CLI tests, 2 separate-module consumer tests, 2 browser-command tests, and 119
 firmware-adapter tests. The native adapter suite needs a host C compiler; on
 Windows use a MinGW `gcc` and keep an unusable `cl` off `PATH`.
 `node examples/web/smoke.mjs` exercises the generated browser bundle, the
@@ -102,7 +102,12 @@ bounds.
 
 - Portable engine tests and CLI tests are host evidence.
 - A successful ESP-IDF build and merged-image check are build evidence.
-- BLE pairing, reconnect, bond persistence, display interaction, and exact HID
-  typing remain device acceptance checks and must not be inferred from builds.
+- On a physical AI Passport the current image was observed booting to
+  `ble_keyboard=1`, advertising as `FoloPassKey`, rendering the panel and the CJK
+  subset, and answering repeated `FAP_SCREENSHOT_V1` requests while the keyboard
+  stayed advertising.
+- Pairing with a real host, reconnect and bond persistence, exact HID typing, the
+  button gestures, the Settings screen, and preference persistence across reboot
+  are not covered by any of the above and still need a phone and a hand.
 - The project does not claim that deterministic test sources generate real
   secrets. The CLI and firmware use their own cryptographic platform sources.

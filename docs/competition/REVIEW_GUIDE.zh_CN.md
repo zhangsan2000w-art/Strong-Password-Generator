@@ -14,8 +14,8 @@
 | README 可复现 | 根 README 提供目标、`moon add` 安装、包导入、CLI 命令、浏览器说明与 consumer 链接。 |
 | CI 检查／构建／测试 | `static-checks.yml` 与 `firmware-checks.yml` 调用共享的 `tools/validate.sh` 门禁。 |
 | 可运行示例 | 包含 CLI、浏览器、独立模块 consumer 和 FoloToy 固件示例。 |
-| 核心测试 | 122 项 MoonBit 测试（可移植根库 12、CLI 3、浏览器命令 2、独立模块消费者 2、固件适配层 103）及 21 项 Python 主机测试覆盖生成、校验、熵、消费者、适配器与固件布局。 |
-| MoonBit 实现规模 | `python tools/check_repo.py` 报告有效生产 MoonBit 3,632 行（根库 775 + 固件适配层 2,857），下限为 1,000 行；物理生产 `.mbt` 为 4,883 行。 |
+| 核心测试 | 138 项 MoonBit 测试（可移植根库 12、CLI 3、浏览器命令 2、独立模块消费者 2、固件适配层 119）及 21 项 Python 主机测试覆盖生成、校验、熵、消费者、适配器、截屏条带与固件布局。 |
+| MoonBit 实现规模 | `python tools/check_repo.py` 报告有效生产 MoonBit 3,799 行（根库 775 + 固件适配层 3,024），下限为 1,000 行；物理生产 `.mbt` 为 5,187 行。 |
 | Mooncakes | `zhangsan2000w-art/moonbit-securegen@0.1.1` 可通过 `moon add` 安装；本机在一个全新 scratch 模块中已从注册中心解析并下载该版本。 |
 | OSI 许可证与署名 | 根代码使用 MIT；保留 FoloToy 上游 MIT 声明，并记录 EFF 词库、Noto Sans SC 与 MoonBit runtime 的许可证。各来源以及承载对应声明的仓库内文件见 [APPLICATION.zh_CN.md](APPLICATION.zh_CN.md#来源移植与许可证)。 |
 
@@ -58,6 +58,8 @@ moon test -p zhangsan2000w-art/moonbit-securegen/cmd/securegen \
 moon -C examples/consumer test --target wasm-gc --release --deny-warn
 moon test -p zhangsan2000w-art/moonbit-securegen/cmd/web \
   --target js --release --deny-warn
+MOONBIT_NEW_NATIVE=0 moon test \
+  -p zhangsan2000w-art/moonbit-securegen-folotoy --target native --release
 moon build --target js --release --deny-warn
 node examples/web/smoke.mjs
 moon run src/cmd/securegen --target js --release -- \
@@ -65,8 +67,11 @@ moon run src/cmd/securegen --target js --release -- \
 python tools/check_repo.py
 ```
 
-第一条验证可移植引擎，第二条验证应用参数与策略行为，第三条使用宿主密码学随机熵
-跑通真实生成旅程，第四条检查仓库边界和 MoonBit 有效实现规模。
+每条 `moon test` 命令都会打印自己的用例总数：可移植根库 12 项、CLI 3 项、独立模块
+消费者 2 项、浏览器命令 2 项、固件适配层 119 项。native 适配层套件需要宿主 C 编译器；
+在 Windows 上使用 MinGW 的 `gcc`，并把不可用的 `cl` 移出 `PATH`。
+`node examples/web/smoke.mjs` 验证生成的浏览器包，`moon run` 使用宿主密码学随机熵
+跑通一次真实生成，`python tools/check_repo.py` 检查仓库边界并打印 MoonBit 有效实现规模。
 
 ## 验证嵌入式消费端
 
@@ -83,7 +88,9 @@ python tools/check_repo.py
 
 - 可移植引擎测试和 CLI 测试属于主机证据。
 - ESP-IDF 构建与合并镜像检查通过属于构建证据。
-- BLE 配对、重连、绑定持久化、屏幕交互和 HID 精确输入仍属于真机验收，不能从构建
-  结果直接推导。
+- 真机上已观察到当前镜像启动到 `ble_keyboard=1`、以 `FoloPassKey` 广播、面板与 CJK
+  字模渲染正确，并能在键盘保持广播的同时连续应答 `FAP_SCREENSHOT_V1`。
+- 与真实主机的配对、重连与绑定持久化、HID 精确输入、按键手势、设置页以及重启后的
+  偏好保留不在上述证据之内，仍需手机与手动验收。
 - 项目不会把确定性测试随机源描述成真实密码来源；CLI 与固件各自使用平台密码学
   随机源。

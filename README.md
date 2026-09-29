@@ -111,11 +111,10 @@ share the same engine without depending on ESP-IDF, LVGL, BLE, or FoloToy code.
 
 ## MoonBit-first implementation
 
-The repository now contains 4,883 physical production `.mbt` lines and 2,722 MoonBit test and application lines, 7,605 in total across 46 tracked MoonBit files. Excluding tests, applications, blank lines, and comments leaves 3,632 effective production MoonBit lines: 775 in the root library and 2,857 in the firmware adapter. `tools/check_repo.py` scans both the root library and firmware adapter and independently enforces at least 1,000 effective production lines; tests and applications cannot satisfy that gate.
+The repository now contains 5,187 physical production `.mbt` lines and 2,921 MoonBit test and application lines, 8,108 in total across 46 tracked MoonBit files. Excluding tests, applications, blank lines, and comments leaves 3,799 effective production MoonBit lines: 775 in the root library and 3,024 in the firmware adapter. `tools/check_repo.py` scans both the root library and firmware adapter and independently enforces at least 1,000 effective production lines; tests and applications cannot satisfy that gate.
 
-The figures above were measured on the tree of release commit `8b4e466`. Re-run
-`python tools/check_repo.py` for the effective production line count, the
-`moon test` commands in [Test](#test) for the per-suite test totals, and
+Re-run `python tools/check_repo.py` for the effective production line count,
+the `moon test` commands in [Test](#test) for the per-suite test totals, and
 `git rev-list --count HEAD` for the commit count.
 
 The production MoonBit modules are compiled into and called by the ESP-IDF firmware. They own:
@@ -256,14 +255,19 @@ Flashing the merged image at `0x0` can reset the NVS region. After initial provi
 
 ## Verification status
 
-The current tree defines 122 MoonBit tests, and every suite passes when run on
+The current tree defines 138 MoonBit tests, and every suite passes when run on
 this machine: 12 in the portable root library (WasmGC and JavaScript), 3 in the
-CLI, 2 in the browser command, 2 in the separate-module consumer, and 103 in the
+CLI, 2 in the browser command, 2 in the separate-module consumer, and 119 in the
 firmware adapter (Native). CI rejects `moonc` older than
 0.10.14, runs repository and package-boundary checks, executes the portable
 library, CLI, browser, cross-package, firmware-adapter, and 21 Python tests (11
 firmware-layout, 7 screenshot conversion, 3 compiler-version gate), and
-builds and verifies the merged ESP-IDF image. BLE pairing and typing, the
-dual-theme Settings screen, preference persistence across reboot, sound toggle,
-fonts, buttons, battery behavior, and RNG adapter still require physical-device
-validation.
+builds and verifies the merged ESP-IDF image.
+
+On a physical AI Passport the current image boots to
+`Ready: secure_random=1 buttons=1 ble_keyboard=1`, advertises as `FoloPassKey`,
+renders both the panel and the CJK subset correctly, and answers
+`FAP_SCREENSHOT_V1` repeatedly while the keyboard stays advertising. Still
+requiring a phone and a hand: pairing and HID typing into a host, the three
+button gestures, the dual-theme Settings screen, preference persistence across
+reboot, the sound toggle, and battery behaviour over time.
