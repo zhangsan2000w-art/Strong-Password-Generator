@@ -12,8 +12,10 @@ Two workflows validate pull requests: `.github/workflows/static-checks.yml` and
 
 - **Static checks** (`static-checks.yml`): validates English-default bilingual
   Markdown, relative links, full-SHA Actions, issue forms, the dependency lock,
-  conflict markers, and likely sensitive data; then runs `actionlint` and host
-  tests. It runs on every pull request.
+  conflict markers, and likely sensitive data; rejects `moonc` older than
+  0.10.14; then checks, builds, packages, and tests the library, CLI, browser,
+  independent consumer, and firmware adapter. It also runs `actionlint` and
+  Python host tests. It runs on every pull request.
 - **Firmware checks** (`firmware-checks.yml`): runs
   `./tools/validate.sh --firmware` for ESP32-C3 in a fresh isolated
   build/configuration directory, verifies the build and the merged `0x0` image

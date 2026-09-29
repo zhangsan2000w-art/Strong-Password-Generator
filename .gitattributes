@@ -1,0 +1,5 @@
+# Generated and vendored C support the firmware but are not project-authored
+# implementation language. Keep GitHub Linguist's language summary focused on
+# the MoonBit library and application logic.
+examples/folotoy-ai-passport/main/passport_font_zh_16.c linguist-generated=true
+examples/folotoy-ai-passport/components/moonbit_password/runtime/** linguist-vendored=true

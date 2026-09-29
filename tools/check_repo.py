@@ -60,6 +60,7 @@ def check_required_files(errors: list[str]) -> None:
         "AGENTS.zh_CN.md",
         "CLAUDE.md",
         "CLAUDE.zh_CN.md",
+        ".gitattributes",
         "docs/CHANGELOG.md",
         ".github/CONTRIBUTING.md",
         ".github/CODE_OF_CONDUCT.md",

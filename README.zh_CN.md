@@ -19,6 +19,36 @@ moon -C examples/consumer test --target js --release --deny-warn
 moon run src/cmd/securegen --target js --release -- --profile strict --length 24
 ```
 
+## 安装与使用
+
+请使用 `moonc` 0.10.14 或更高版本。在新建或现有 MoonBit 项目中添加已发布模块：
+
+```bash
+moon add zhangsan2000w-art/moonbit-securegen
+```
+
+在消费者的 `moon.pkg` 中导入根包：
+
+```moonbit
+import {
+  "zhangsan2000w-art/moonbit-securegen" @securegen,
+}
+```
+
+再注入目标平台提供的密码学安全随机源：
+
+```moonbit
+let policy = @securegen.PasswordPolicy::standard()
+match @securegen.generate_password(policy, secure_random_u32) {
+  Ok(password) => println(password)
+  Err(message) => println("generation failed: \{message}")
+}
+```
+
+完整的独立模块样例位于
+[`examples/consumer`](examples/consumer/README.zh_CN.md)。CLI 与浏览器示例提供
+可立即运行的应用路径。
+
 ## FoloToy 参考应用
 
 固件启动后直接进入生成器，不联网、不保存密码历史，也不重新定义系统电源键。只有用户明确选择**发送**后，当前生成结果才会通过已配对且加密的 BLE HID 键盘连接离开设备。
@@ -98,12 +128,19 @@ C 只保留 ESP-IDF/BSP 初始化、LVGL 控件绘制、I2C 原始读数、FreeR
 ## 工具链
 
 - ESP-IDF 5.5.3，目标为 `esp32c3`
-- 支持 native/C 后端的 MoonBit，`moon` 与 `moonc` 位于 `PATH`
+- `moonc` 0.10.14 或更高版本，并支持 native/C 后端；`moon` 与 `moonc`
+  位于 `PATH`
 - Python 3
 
-本次验证环境使用 `moon 0.1.20260904` 和 `moonc v0.10.12+1634b282e`。ESP-IDF 构建会调用 [`tools/generate_moonbit.py`](tools/generate_moonbit.py)，把可复用 `securegen` 包和固件适配包分别编译为可移植 C，再链接到 `moonbit_password` ESP-IDF 组件。生成的 C 是构建产物，不进入 Git。
+静态门禁运行 [`tools/check_moonc_version.py`](tools/check_moonc_version.py)，
+在检查或测试项目前拒绝旧编译器。ESP-IDF 构建会调用
+[`tools/generate_moonbit.py`](tools/generate_moonbit.py)，把可复用
+`securegen` 包和固件适配包分别编译为可移植 C，再链接到
+`moonbit_password` ESP-IDF 组件。生成的 C 是构建产物，不进入 Git。
 
-GitHub Actions 安装 MoonBit 的 `latest` 稳定通道，因为官方 CDN 不保证带日期的 CLI 历史包长期可下载。每次 CI 日志打印的实际工具版本即为该次验证记录；上面的版本仍是本地已经验证的开发快照。
+GitHub Actions 安装 MoonBit 的 `latest` 稳定通道，因为官方 CDN 不保证带日期的
+CLI 历史包长期可下载。最低版本门禁可避免 `latest` 意外解析到低于大赛要求的版本，
+每次运行也会打印实际工具版本。
 
 ## 测试
 
@@ -117,8 +154,10 @@ GitHub Actions 安装 MoonBit 的 `latest` 稳定通道，因为官方 CDN 不�
 
 ```bash
 moon check --target wasm-gc --deny-warn
-MOONBIT_NEW_NATIVE=0 moon -C moonbit check --target native --deny-warn
-MOONBIT_NEW_NATIVE=0 moon -C moonbit test --target native --release
+MOONBIT_NEW_NATIVE=0 moon -C examples/folotoy-ai-passport/moonbit \
+  check --target native --deny-warn
+MOONBIT_NEW_NATIVE=0 moon -C examples/folotoy-ai-passport/moonbit \
+  test --target native --release
 ```
 
 可复用包还提供不依赖固件后端的 WasmGC 门禁：
@@ -194,4 +233,8 @@ python -m esptool --chip esp32c3 --baud 460800 \
 
 ## 验证状态
 
-当前代码定义了 118 项 MoonBit 测试。根库 WasmGC 测试、CLI JavaScript 测试、Native C 代码生成、3,619 行生产有效代码门禁、仓库检查及 18 项 Python 测试已在本地通过。当前 shell 未激活 ESP-IDF 工具链，因此迁移后的示例尚未重新执行完整固件构建；迁移前的构建不能作为新路径的验证结果。BLE 配对和键盘输入、双主题设置页、重启后的偏好保留、声音开关、字体、按键、电池行为和 RNG 适配器仍需真机验证。
+当前代码定义了 122 项 MoonBit 测试。CI 会拒绝低于 0.10.14 的 `moonc`，
+执行仓库与发布包边界检查，运行可移植库、CLI、浏览器、跨包、固件适配层及
+21 项 Python 测试，并构建和校验合并后的 ESP-IDF 镜像。BLE 配对和键盘输入、
+双主题设置页、重启后的偏好保留、声音开关、字体、按键、电池行为和 RNG 适配器
+仍需真机验证。

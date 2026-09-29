@@ -5,6 +5,20 @@ English | [简体中文](REVIEW_GUIDE.zh_CN.md)
 This is the shortest path for evaluating the MoonBit work without first
 building or owning FoloToy hardware.
 
+## Acceptance evidence
+
+| Requirement | Repository evidence |
+| --- | --- |
+| MoonBit-first, `moonc >= 0.10.14` | The root library and product policy are MoonBit; `tools/check_moonc_version.py` is a hard static/CI gate. Generated font C and the vendored runtime are identified through `.gitattributes`. |
+| Public repository and history | The public GitHub repository preserves focused Conventional Commit history. |
+| Clear source and working core | `src` is the portable library; adapters and applications are under `src/cmd` and `examples`. |
+| Reproducible README | The root README gives the goal, `moon add` installation, package import, CLI commands, browser instructions, and consumer links. |
+| CI check/build/test | `static-checks.yml` and `firmware-checks.yml` call the shared `tools/validate.sh` gates. |
+| Runnable examples | CLI, browser, separate-module consumer, and FoloToy firmware examples are included. |
+| Core tests | 122 MoonBit tests plus Python host tests cover generation, validation, entropy, consumers, adapters, and firmware layout. |
+| Mooncakes | `zhangsan2000w-art/moonbit-securegen@0.1.0` is installable with `moon add`. |
+| OSI license and attribution | Root code uses MIT; the upstream FoloToy MIT notice is retained, and the EFF wordlist, Noto Sans SC, and MoonBit runtime notices are documented. |
+
 ## What is the reusable artifact?
 
 The repository root is the publishable `zhangsan2000w-art/moonbit-securegen`

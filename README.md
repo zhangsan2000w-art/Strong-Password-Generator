@@ -21,6 +21,38 @@ moon test -p zhangsan2000w-art/moonbit-securegen \
 moon run src/cmd/securegen --target js --release -- --profile strict --length 24
 ```
 
+## Install and use
+
+Use MoonBit with `moonc` 0.10.14 or newer. Add the published module to a new or
+existing MoonBit project:
+
+```bash
+moon add zhangsan2000w-art/moonbit-securegen
+```
+
+Import the root package from the consumer's `moon.pkg`:
+
+```moonbit
+import {
+  "zhangsan2000w-art/moonbit-securegen" @securegen,
+}
+```
+
+Then inject the cryptographically secure random source supplied by the target
+platform:
+
+```moonbit
+let policy = @securegen.PasswordPolicy::standard()
+match @securegen.generate_password(policy, secure_random_u32) {
+  Ok(password) => println(password)
+  Err(message) => println("generation failed: \{message}")
+}
+```
+
+The complete separate-module example is in
+[`examples/consumer`](examples/consumer/README.md). The CLI and browser example
+provide immediately runnable application paths.
+
 ## FoloToy reference application
 
 The firmware starts directly in the generator. It does not connect to a network, store password history, or redefine the system power button. A generated value leaves the device only after the user explicitly selects **Send**, through the paired encrypted BLE HID keyboard connection.
@@ -105,12 +137,21 @@ This repository adds the MoonBit-based password generator, product logic, intera
 ## Toolchains
 
 - ESP-IDF 5.5.3, target `esp32c3`
-- MoonBit with the native/C backend (`moon` and `moonc` on `PATH`)
+- MoonBit with `moonc` 0.10.14 or newer and the native/C backend (`moon` and
+  `moonc` on `PATH`)
 - Python 3
 
-The verified development snapshot used `moon 0.1.20260904` and `moonc v0.10.12+1634b282e`. The ESP-IDF build invokes [`tools/generate_moonbit.py`](tools/generate_moonbit.py), which compiles the reusable `securegen` package and the firmware adapter package to portable C, then links them into the `moonbit_password` ESP-IDF component. Generated C is a build artifact and is not committed.
+The static gate runs [`tools/check_moonc_version.py`](tools/check_moonc_version.py)
+and rejects older compilers before checking or testing the project. The ESP-IDF
+build invokes [`tools/generate_moonbit.py`](tools/generate_moonbit.py), which
+compiles the reusable `securegen` package and the firmware adapter package to
+portable C, then links them into the `moonbit_password` ESP-IDF component.
+Generated C is a build artifact and is not committed.
 
-GitHub Actions installs MoonBit's `latest` stable channel because dated CLI bundles are not guaranteed to remain downloadable from the official CDN. The exact tool versions printed by each CI run are therefore part of that run's verification record; the version above remains the locally verified snapshot.
+GitHub Actions installs MoonBit's `latest` stable channel because dated CLI
+bundles are not guaranteed to remain downloadable from the official CDN. The
+minimum-version gate prevents `latest` from silently resolving below the
+competition baseline, and each run prints its exact tool versions.
 
 ## Test
 
@@ -124,8 +165,10 @@ Run the MoonBit core directly:
 
 ```bash
 moon check --target wasm-gc --deny-warn
-MOONBIT_NEW_NATIVE=0 moon -C moonbit check --target native --deny-warn
-MOONBIT_NEW_NATIVE=0 moon -C moonbit test --target native --release
+MOONBIT_NEW_NATIVE=0 moon -C examples/folotoy-ai-passport/moonbit \
+  check --target native --deny-warn
+MOONBIT_NEW_NATIVE=0 moon -C examples/folotoy-ai-passport/moonbit \
+  test --target native --release
 ```
 
 The reusable package also has a backend-independent gate that runs on WasmGC:
@@ -202,4 +245,10 @@ Flashing the merged image at `0x0` can reset the NVS region. After initial provi
 
 ## Verification status
 
-The current tree defines 118 MoonBit tests. Root-library WasmGC tests, CLI JavaScript tests, Native C code generation, the 3,619-line effective-production gate, repository checks, and 18 Python tests pass locally. The ESP-IDF toolchain is not active in the current shell, so the relocated example has not yet received a fresh full firmware build; a pre-migration build is not counted as validation of the new path. BLE pairing and typing, the dual-theme Settings screen, preference persistence across reboot, sound toggle, fonts, buttons, battery behavior, and RNG adapter still require physical-device validation.
+The current tree defines 122 MoonBit tests. CI rejects `moonc` older than
+0.10.14, runs repository and package-boundary checks, executes the portable
+library, CLI, browser, cross-package, firmware-adapter, and 21 Python tests, and
+builds and verifies the merged ESP-IDF image. BLE pairing and typing, the
+dual-theme Settings screen, preference persistence across reboot, sound toggle,
+fonts, buttons, battery behavior, and RNG adapter still require physical-device
+validation.

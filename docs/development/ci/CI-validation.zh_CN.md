@@ -11,8 +11,9 @@
 ## 工作流
 
 - **Static checks**（`static-checks.yml`）：校验英文默认双语 Markdown、相对链接、GitHub Action
-  完整 SHA、Issue Form 基本结构、依赖锁文件、冲突标记和疑似敏感信息；随后运行 `actionlint` 与
-  host tests。它在每个 pull request 上运行。
+  完整 SHA、Issue Form 基本结构、依赖锁文件、冲突标记和疑似敏感信息；拒绝低于 0.10.14 的
+  `moonc`；随后检查、构建、打包并测试核心库、CLI、浏览器、独立 consumer 与固件适配层，
+  同时运行 `actionlint` 和 Python host tests。它在每个 pull request 上运行。
 - **Firmware checks**（`firmware-checks.yml`）：在全新隔离的构建/配置目录中，使用 ESP-IDF 5.5.3 /
   ESP32-C3 运行 `./tools/validate.sh --firmware`，验证编译、0x0 合并固件的偏移与内容，并保留 7 天
   Actions artifact。

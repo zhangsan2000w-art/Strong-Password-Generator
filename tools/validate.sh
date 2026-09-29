@@ -30,6 +30,7 @@ run_static_checks() {
         echo "ERROR: moon is not available; install the MoonBit toolchain first." >&2
         return 1
     fi
+    "${python_bin}" tools/check_moonc_version.py
     MOONBIT_NEW_NATIVE=0 moon -C "${firmware_root}/moonbit" check --target native --deny-warn
     moon test \
         -p zhangsan2000w-art/moonbit-securegen \
@@ -76,6 +77,7 @@ run_static_checks() {
     # moon test 覆盖；C 侧不再保留只跑这两块逻辑的主机测试。
     PYTHONDONTWRITEBYTECODE=1 "${python_bin}" tests/test_verify_firmware.py
     PYTHONDONTWRITEBYTECODE=1 "${python_bin}" tests/test_screenshot_convert.py
+    PYTHONDONTWRITEBYTECODE=1 "${python_bin}" tests/test_check_moonc_version.py
     echo "Host tests: PASS"
 }
 

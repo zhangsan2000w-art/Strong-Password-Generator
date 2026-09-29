@@ -4,6 +4,20 @@
 
 以下是无需先编译 FoloToy 固件、也无需持有硬件即可验证 MoonBit 工作的最短路径。
 
+## 验收证据
+
+| 要求 | 仓库证据 |
+| --- | --- |
+| MoonBit 主体，`moonc >= 0.10.14` | 根库与产品策略由 MoonBit 实现；`tools/check_moonc_version.py` 是静态检查与 CI 的硬门禁；生成字体 C 与上游 runtime 通过 `.gitattributes` 明确标识。 |
+| 公开仓库与提交记录 | GitHub 仓库公开，并保留聚焦的 Conventional Commit 历史。 |
+| 清晰源码与可用核心 | `src` 是可移植库，适配器和应用位于 `src/cmd` 与 `examples`。 |
+| README 可复现 | 根 README 提供目标、`moon add` 安装、包导入、CLI 命令、浏览器说明与 consumer 链接。 |
+| CI 检查／构建／测试 | `static-checks.yml` 与 `firmware-checks.yml` 调用共享的 `tools/validate.sh` 门禁。 |
+| 可运行示例 | 包含 CLI、浏览器、独立模块 consumer 和 FoloToy 固件示例。 |
+| 核心测试 | 122 项 MoonBit 测试及 Python 主机测试覆盖生成、校验、熵、消费者、适配器与固件布局。 |
+| Mooncakes | `zhangsan2000w-art/moonbit-securegen@0.1.0` 可通过 `moon add` 安装。 |
+| OSI 许可证与署名 | 根代码使用 MIT；保留 FoloToy 上游 MIT 声明，并记录 EFF 词库、Noto Sans SC 与 MoonBit runtime 的许可证。 |
+
 ## 可复用产物是什么？
 
 仓库根目录是可发布的 `zhangsan2000w-art/moonbit-securegen` 模块，`src` 是它的
