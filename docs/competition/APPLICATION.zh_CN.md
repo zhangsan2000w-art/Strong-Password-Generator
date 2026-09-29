@@ -76,7 +76,7 @@ C 侧继续承担 BSP、LVGL、NimBLE 传输、NVS、编解码器等硬件胶水
 | 根库不依赖 C FFI、BLE、LVGL、NVS | 已核实 | `src/moon.pkg` 仅导入 `moonbitlang/core/debug` 与测试用 `core/test`；`src/api.mbt`、`src/typed_api.mbt` 无 `extern`。 |
 | Mooncakes 0.1.1 | 已核实 | 在全新 scratch 模块中执行 `moon add zhangsan2000w-art/moonbit-securegen`，本机已从注册中心解析并下载 `0.1.1`。缓存产物内含 `moon.mod`（`version = "0.1.1"`）、`src/api.mbt`、`src/typed_api.mbt`、`src/moon.pkg`、两个命令包、consumer 与浏览器示例以及 `LICENSE`，不含固件、tools 或 workflow 文件。[`VERSIONING.zh_CN.md`](../api/VERSIONING.zh_CN.md) 定义发布约定。 |
 | Native、Wasm、CLI、Web、consumer、测试与 CI | 已核实 | `./tools/validate.sh --static` 现已完整通过：仓库检查、`moonc >= 0.10.14` 门禁、五个 MoonBit 套件（`--deny-warn`）、CLI 实跑生成、浏览器 smoke、发布包边界检查、actionlint 以及 21 项 Python 主机测试。前提是编译器不低于 `moonc 0.10.14`；官方 `latest` 安装包即满足，CI 也通过 [`static-checks.yml`](../../.github/workflows/static-checks.yml) 每次安装该版本。 |
-| ESP-IDF 固件构建 | 本次未重跑 | 需要激活 ESP-IDF 5.5.3，执行 `./tools/validate.sh --firmware`。 |
+| ESP-IDF 固件构建 | 已核实 | 在 ESP-IDF 5.5.3 + `moonc 0.10.14` 下，`./tools/validate.sh --firmware` 从全新构建目录跑通：可移植包与固件适配包生成 C、链接进 ESP32-C3 应用，并校验合并后的烧录镜像（bootloader 21,024 字节 @`0x0`、分区表 3,072 字节 @`0x8000`、应用 1,137,680 字节位于 `0x10000` 处 8,323,072 字节的 `factory` 分区内、合并镜像 1,203,216 字节）。 |
 | 真机验收 | 未验证 | BLE 配对与键盘输入、显示、字体、按键、电池与持久化仍属真机检查；构建通过不等于设备通过。 |
 
 ## 来源、移植与许可证
