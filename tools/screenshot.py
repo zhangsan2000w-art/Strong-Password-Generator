@@ -28,6 +28,8 @@ COMMAND = b"FAP_SCREENSHOT_V1\n"
 PIXEL_FORMAT = "RGB565LE"
 DEFAULT_WIDTH = 240
 DEFAULT_HEIGHT = 320
+# 重同步预算：日志行可能比协议头先到，留足余量但不能无限累积。
+_MAX_PREAMBLE_LINES = 64
 
 
 def parse_header(line: bytes) -> tuple[int, int, int]:
@@ -105,6 +107,24 @@ def read_exact(serial, size: int, deadline: float) -> bytes:
     return bytes(data)
 
 
+def find_header(lines, max_stray=64):
+    """Return the parsed header from the first acceptable line, else None.
+
+    The reply shares one USB-CDC stream with the device console log, so stray
+    lines can precede the header (and after a failed capture, follow it).
+    Resync instead of failing on the first line, but give up after
+    ``max_stray`` lines so a chatty device cannot hang the capture.
+    """
+    for index, line in enumerate(lines):
+        if index >= max_stray:
+            return None
+        try:
+            return parse_header(line)
+        except ValueError:
+            continue
+    return None
+
+
 def capture(port: str, baud: int, output: Path, timeout: float) -> tuple[int, int]:
     import serial  # pyserial, imported lazily so raw mode stays dependency-free
 
@@ -113,20 +133,21 @@ def capture(port: str, baud: int, output: Path, timeout: float) -> tuple[int, in
         device.write(COMMAND)
         device.flush()
         deadline = time.monotonic() + timeout
-        # Skip stray log lines: the device may emit firmware logs around the
-        # capture window; resync on the first line that parses as a header.
-        width = height = size = None
+        preamble: list[bytes] = []
+        header = None
         while time.monotonic() < deadline:
             line = device.readline()
             if not line:
                 continue
-            try:
-                width, height, size = parse_header(line)
+            preamble.append(line)
+            header = find_header(preamble)
+            if header is not None:
                 break
-            except ValueError:
-                continue
-        if width is None:
+            if len(preamble) >= _MAX_PREAMBLE_LINES:
+                break
+        if header is None:
             raise TimeoutError("device did not answer (check the port / firmware)")
+        width, height, size = header
         payload = read_exact(device, size, deadline)
     rows = rgb565le_to_rows(payload, width, height)
     write_png(output, width, height, rows)
