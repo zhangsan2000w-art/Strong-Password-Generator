@@ -59,11 +59,11 @@ C 侧继续承担 BSP、LVGL、NimBLE 传输、NVS、编解码器等硬件胶水
 
 | 指标 | 数值 | 复核方式 |
 | --- | --- | --- |
-| 有效生产 MoonBit 行数 | 3,799（根库 775 + 适配层 3,024），门禁下限 1,000 | `python tools/check_repo.py` |
-| 物理生产 `.mbt` 行数 | 5,187 | 对 `tools/check_repo.py` 中 `moonbit_product_lines()` 扫描的同一文件集合统计原始行数 |
-| MoonBit 测试与应用行数 | 2,921（46 个受版本管理的 MoonBit 文件合计 8,108 行） | 同一口径，计入测试与应用 |
-| MoonBit 测试 | 138 项全部通过：根库 12、CLI 3、浏览器 2、consumer 2、适配层 119 | `REVIEW_GUIDE.md` 中按包的 `moon test` 命令 |
-| Python 主机测试 | 21 项全部通过：固件布局 11、截屏转换 7、编译器门禁 3 | `python tests/test_verify_firmware.py` 等 |
+| 有效生产 MoonBit 行数 | 3,821（根库 775 + 适配层 3,046），门禁下限 1,000 | `python tools/check_repo.py` |
+| 物理生产 `.mbt` 行数 | 5,228 | 对 `tools/check_repo.py` 中 `moonbit_product_lines()` 扫描的同一文件集合统计原始行数 |
+| MoonBit 测试与应用行数 | 2,970（46 个受版本管理的 MoonBit 文件合计 8,198 行） | 同一口径，计入测试与应用 |
+| MoonBit 测试 | 139 项全部通过：根库 12、CLI 3、浏览器 2、consumer 2、适配层 120 | `REVIEW_GUIDE.md` 中按包的 `moon test` 命令 |
+| Python 主机测试 | 25 项全部通过：固件布局 11、截屏转换 11、编译器门禁 3 | `python tests/test_verify_firmware.py` 等 |
 | 提交数 | 42 次，日期均在 2026-08-07 至 2026-09-29 | 在 `8b4e466` 上执行 `git rev-list --count HEAD` |
 
 ## 主张逐项核对
@@ -71,11 +71,11 @@ C 侧继续承担 BSP、LVGL、NimBLE 传输、NVS、编解码器等硬件胶水
 | 申报要求 | 状态 | 证据或说明 |
 | --- | --- | --- |
 | MoonBit 项目身份 | 已核实 | 根模块就是 MoonBit 库；`tools/check_repo.py` 在生产有效行数低于 1,000 时直接判失败。 |
-| 有效 MoonBit 超过 1,000 行 | 已核实 | 本机 `python tools/check_repo.py` 报告 3,799 行。 |
+| 有效 MoonBit 超过 1,000 行 | 已核实 | 本机 `python tools/check_repo.py` 报告 3,821 行。 |
 | 赛期提交与可用 MVP | 已核实数量与日期，窗口未核对 | 42 次提交，日期跨度 2026-08-07 至 2026-09-29；MoonBit 库、CLI 与浏览器页面构成的 MVP 按 `REVIEW_GUIDE.md` 的命令无需硬件即可运行。这些日期是否落在主办方的赛期窗口内，属于维护者需要自行确认的事项，不是仓库可自证的事实。 |
 | 根库不依赖 C FFI、BLE、LVGL、NVS | 已核实 | `src/moon.pkg` 仅导入 `moonbitlang/core/debug` 与测试用 `core/test`；`src/api.mbt`、`src/typed_api.mbt` 无 `extern`。 |
 | Mooncakes 0.1.1 | 已核实 | 在全新 scratch 模块中执行 `moon add zhangsan2000w-art/moonbit-securegen`，本机已从注册中心解析并下载 `0.1.1`。缓存产物内含 `moon.mod`（`version = "0.1.1"`）、`src/api.mbt`、`src/typed_api.mbt`、`src/moon.pkg`、两个命令包、consumer 与浏览器示例以及 `LICENSE`，不含固件、tools 或 workflow 文件。[`VERSIONING.zh_CN.md`](../api/VERSIONING.zh_CN.md) 定义发布约定。 |
-| Native、Wasm、CLI、Web、consumer、测试与 CI | 已核实 | `./tools/validate.sh --static` 现已完整通过：仓库检查、`moonc >= 0.10.14` 门禁、五个 MoonBit 套件（`--deny-warn`）、CLI 实跑生成、浏览器 smoke、发布包边界检查、actionlint 以及 21 项 Python 主机测试。前提是编译器不低于 `moonc 0.10.14`；官方 `latest` 安装包即满足，CI 也通过 [`static-checks.yml`](../../.github/workflows/static-checks.yml) 每次安装该版本。 |
+| Native、Wasm、CLI、Web、consumer、测试与 CI | 已核实 | `./tools/validate.sh --static` 现已完整通过：仓库检查、`moonc >= 0.10.14` 门禁、五个 MoonBit 套件（`--deny-warn`）、CLI 实跑生成、浏览器 smoke、发布包边界检查、actionlint 以及 25 项 Python 主机测试。前提是编译器不低于 `moonc 0.10.14`；官方 `latest` 安装包即满足，CI 也通过 [`static-checks.yml`](../../.github/workflows/static-checks.yml) 每次安装该版本。 |
 | ESP-IDF 固件构建 | 已核实 | 在 ESP-IDF 5.5.3 + `moonc 0.10.14` 下，`./tools/validate.sh --firmware` 从全新构建目录跑通：可移植包与固件适配包生成 C、链接进 ESP32-C3 应用，并校验合并后的烧录镜像（bootloader 21,024 字节 @`0x0`、分区表 3,072 字节 @`0x8000`、应用 1,140,064 字节位于 `0x10000` 处 8,323,072 字节的 `factory` 分区内、合并镜像 1,205,600 字节）；同一镜像已实机烧录并启动。 |
 | 真机验收 | 部分核实 | 真实 AI Passport 上已观察到：启动到 `Ready: secure_random=1 buttons=1 ble_keyboard=1`、以 `FoloPassKey` 广播、面板与 CJK 字模渲染正确、键盘保持广播期间可连续应答 `FAP_SCREENSHOT_V1`。未覆盖：与真实主机的配对、向其 HID 输入、三键手势、设置页、重启后的偏好保留、声音开关与电池长期行为。 |
 

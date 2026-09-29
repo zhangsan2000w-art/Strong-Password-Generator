@@ -111,7 +111,7 @@ share the same engine without depending on ESP-IDF, LVGL, BLE, or FoloToy code.
 
 ## MoonBit-first implementation
 
-The repository now contains 5,187 physical production `.mbt` lines and 2,921 MoonBit test and application lines, 8,108 in total across 46 tracked MoonBit files. Excluding tests, applications, blank lines, and comments leaves 3,799 effective production MoonBit lines: 775 in the root library and 3,024 in the firmware adapter. `tools/check_repo.py` scans both the root library and firmware adapter and independently enforces at least 1,000 effective production lines; tests and applications cannot satisfy that gate.
+The repository now contains 5,228 physical production `.mbt` lines and 2,970 MoonBit test and application lines, 8,198 in total across 46 tracked MoonBit files. Excluding tests, applications, blank lines, and comments leaves 3,821 effective production MoonBit lines: 775 in the root library and 3,046 in the firmware adapter. `tools/check_repo.py` scans both the root library and firmware adapter and independently enforces at least 1,000 effective production lines; tests and applications cannot satisfy that gate.
 
 Re-run `python tools/check_repo.py` for the effective production line count,
 the `moon test` commands in [Test](#test) for the per-suite test totals, and
@@ -255,13 +255,13 @@ Flashing the merged image at `0x0` can reset the NVS region. After initial provi
 
 ## Verification status
 
-The current tree defines 138 MoonBit tests, and every suite passes when run on
+The current tree defines 139 MoonBit tests, and every suite passes when run on
 this machine: 12 in the portable root library (WasmGC and JavaScript), 3 in the
-CLI, 2 in the browser command, 2 in the separate-module consumer, and 119 in the
+CLI, 2 in the browser command, 2 in the separate-module consumer, and 120 in the
 firmware adapter (Native). CI rejects `moonc` older than
 0.10.14, runs repository and package-boundary checks, executes the portable
-library, CLI, browser, cross-package, firmware-adapter, and 21 Python tests (11
-firmware-layout, 7 screenshot conversion, 3 compiler-version gate), and
+library, CLI, browser, cross-package, firmware-adapter, and 25 Python tests (11
+firmware-layout, 11 screenshot conversion, 3 compiler-version gate), and
 builds and verifies the merged ESP-IDF image.
 
 On a physical AI Passport the current image boots to

@@ -44,7 +44,7 @@ MoonBit owns the product rules. C owns the platform boundary. No MoonBit core mo
 
 The state is packed into a `UInt64` so the C adapter treats it as an opaque value. State transitions clear the one-shot action field before processing each input. A generation action can therefore be repeated intentionally by pressing `OK` again on the generate row.
 
-There are 3,799 effective production MoonBit lines (tests, applications, blanks, and comments excluded), 5,187 physical production lines, and 2,921 MoonBit test and application lines, 8,108 in total across 46 tracked files. Repository checks scan the root library and firmware adapter and prevent effective production MoonBit from dropping below 1,000 lines.
+There are 3,821 effective production MoonBit lines (tests, applications, blanks, and comments excluded), 5,228 physical production lines, and 2,970 MoonBit test and application lines, 8,198 in total across 46 tracked files. Repository checks scan the root library and firmware adapter and prevent effective production MoonBit from dropping below 1,000 lines.
 
 ## Platform integration
 

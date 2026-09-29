@@ -16,8 +16,8 @@ building or owning FoloToy hardware. The one-page submission brief is
 | Reproducible README | The root README gives the goal, `moon add` installation, package import, CLI commands, browser instructions, and consumer links. |
 | CI check/build/test | `static-checks.yml` and `firmware-checks.yml` call the shared `tools/validate.sh` gates. |
 | Runnable examples | CLI, browser, separate-module consumer, and FoloToy firmware examples are included. |
-| Core tests | 138 MoonBit tests (12 portable library, 3 CLI, 2 browser command, 2 separate-module consumer, 119 firmware adapter) plus 21 Python host tests cover generation, validation, entropy, consumers, adapters, capture bands, and firmware layout. |
-| MoonBit implementation scale | `python tools/check_repo.py` reports 3,799 effective production MoonBit lines (775 root library plus 3,024 firmware adapter) against a 1,000-line floor; 5,187 physical production `.mbt` lines. |
+| Core tests | 139 MoonBit tests (12 portable library, 3 CLI, 2 browser command, 2 separate-module consumer, 120 firmware adapter) plus 25 Python host tests cover generation, validation, entropy, consumers, adapters, capture bands, and firmware layout. |
+| MoonBit implementation scale | `python tools/check_repo.py` reports 3,821 effective production MoonBit lines (775 root library plus 3,046 firmware adapter) against a 1,000-line floor; 5,228 physical production `.mbt` lines. |
 | Mooncakes | `zhangsan2000w-art/moonbit-securegen@0.1.1` is installable with `moon add`; a scratch module on this machine resolved and downloaded exactly that version from the registry. |
 | OSI license and attribution | Root code uses MIT; the upstream FoloToy MIT notice is retained, and the EFF wordlist, Noto Sans SC, and MoonBit runtime notices are documented. [APPLICATION.md](APPLICATION.md#sources-porting-and-licenses) lists each origin together with the tracked file that carries its notice. |
 
@@ -77,7 +77,7 @@ python tools/check_repo.py
 ```
 
 Each `moon test` command prints its own total: 12 portable library tests,
-3 CLI tests, 2 separate-module consumer tests, 2 browser-command tests, and 119
+3 CLI tests, 2 separate-module consumer tests, 2 browser-command tests, and 120
 firmware-adapter tests. The native adapter suite needs a host C compiler; on
 Windows use a MinGW `gcc` and keep an unusable `cl` off `PATH`.
 `node examples/web/smoke.mjs` exercises the generated browser bundle, the

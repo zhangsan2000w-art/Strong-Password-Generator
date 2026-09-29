@@ -67,11 +67,11 @@ hardware.
 
 | Metric | Value | How to reproduce |
 | --- | --- | --- |
-| Effective production MoonBit lines | 3,799 (775 root library + 3,024 adapter) against a 1,000 floor | `python tools/check_repo.py` |
-| Physical production `.mbt` lines | 5,187 | raw line count over the same file set that `moonbit_product_lines()` in `tools/check_repo.py` scans |
-| MoonBit test and application lines | 2,921 (8,108 MoonBit lines in total across 46 tracked files) | same scope, with tests and applications counted |
-| MoonBit tests | 138 passing: 12 library, 3 CLI, 2 browser, 2 consumer, 119 adapter | per-package `moon test` commands in `REVIEW_GUIDE.md` |
-| Python host tests | 21 passing: 11 layout, 7 screenshot conversion, 3 compiler gate | `python tests/test_verify_firmware.py` and siblings |
+| Effective production MoonBit lines | 3,821 (775 root library + 3,046 adapter) against a 1,000 floor | `python tools/check_repo.py` |
+| Physical production `.mbt` lines | 5,228 | raw line count over the same file set that `moonbit_product_lines()` in `tools/check_repo.py` scans |
+| MoonBit test and application lines | 2,970 (8,198 MoonBit lines in total across 46 tracked files) | same scope, with tests and applications counted |
+| MoonBit tests | 139 passing: 12 library, 3 CLI, 2 browser, 2 consumer, 120 adapter | per-package `moon test` commands in `REVIEW_GUIDE.md` |
+| Python host tests | 21 passing: 11 layout, 11 screenshot conversion, 3 compiler gate | `python tests/test_verify_firmware.py` and siblings |
 | Commits | 42, all dated 2026-08-07 to 2026-09-29 | `git rev-list --count HEAD` at `8b4e466` |
 
 ## Claim audit
@@ -79,11 +79,11 @@ hardware.
 | Entry requirement | Status | Evidence or caveat |
 | --- | --- | --- |
 | MoonBit project identity | Verified | Root module is a MoonBit library; the gate in `tools/check_repo.py` fails the build if production MoonBit drops below 1,000 effective lines. |
-| More than 1,000 effective MoonBit lines | Verified | 3,799 reported by `python tools/check_repo.py` on this tree. |
+| More than 1,000 effective MoonBit lines | Verified | 3,821 reported by `python tools/check_repo.py` on this tree. |
 | Competition-period commits and a working MVP | Verified, window not checked | 42 commits dated 2026-08-07 to 2026-09-29; the MoonBit library, CLI, and browser MVP runs with the commands in `REVIEW_GUIDE.md` without hardware. Whether those dates fall inside the organizers' submission window is the maintainer's check, not a repository fact. |
 | Root library free of C FFI, BLE, LVGL, NVS | Verified | `src/moon.pkg` imports only `moonbitlang/core/debug` and `core/test`; no `extern` in `src/api.mbt` or `src/typed_api.mbt`. |
 | Mooncakes package at 0.1.1 | Verified | `moon add zhangsan2000w-art/moonbit-securegen` in a scratch module resolved and downloaded `0.1.1` from the registry on this machine. The cached artifact carries `moon.mod` with `version = "0.1.1"`, `src/api.mbt`, `src/typed_api.mbt`, `src/moon.pkg`, both command packages, the consumer and browser examples, and `LICENSE`; it contains no firmware, tools, or workflow files. [`VERSIONING.md`](../api/VERSIONING.md) defines the release contract. |
-| Native, Wasm, CLI, Web, consumer, tests, CI | Verified | `./tools/validate.sh --static` now passes end to end: repository checks, the `moonc >= 0.10.14` gate, five MoonBit suites under `--deny-warn`, the CLI live-generation run, the browser smoke test, the publish-package boundary check, actionlint, and 21 Python host tests. It needs a compiler at `moonc 0.10.14` or newer; the official `latest` bundle provides it, and CI installs that bundle on every run through [`static-checks.yml`](../../.github/workflows/static-checks.yml). |
+| Native, Wasm, CLI, Web, consumer, tests, CI | Verified | `./tools/validate.sh --static` now passes end to end: repository checks, the `moonc >= 0.10.14` gate, five MoonBit suites under `--deny-warn`, the CLI live-generation run, the browser smoke test, the publish-package boundary check, actionlint, and 25 Python host tests. It needs a compiler at `moonc 0.10.14` or newer; the official `latest` bundle provides it, and CI installs that bundle on every run through [`static-checks.yml`](../../.github/workflows/static-checks.yml). |
 | ESP-IDF firmware build | Verified | `./tools/validate.sh --firmware` completes from a fresh build directory on ESP-IDF 5.5.3 with `moonc 0.10.14`: the portable package and the firmware adapter are emitted to C, linked into the ESP32-C3 application, and the merged flash image is verified (bootloader 21,024 bytes at `0x0`, partition table 3,072 bytes at `0x8000`, application 1,140,064 bytes inside the 8,323,072-byte `factory` partition at `0x10000`, merged image 1,205,600 bytes). The same image was then flashed and booted on hardware. |
 | Physical device acceptance | Partially verified | Observed on a real AI Passport: boot to `Ready: secure_random=1 buttons=1 ble_keyboard=1`, advertising as `FoloPassKey`, correct panel and CJK glyph rendering, and repeated `FAP_SCREENSHOT_V1` captures while the keyboard stayed advertising. Not covered: pairing with a real host, HID typing into it, the three button gestures, the Settings screen, preference persistence across reboot, the sound toggle, and battery behaviour over time. |
 
