@@ -3,3 +3,17 @@
 # the MoonBit library and application logic.
 examples/folotoy-ai-passport/main/passport_font_zh_16.c linguist-generated=true
 examples/folotoy-ai-passport/components/moonbit_password/runtime/** linguist-vendored=true
+
+# Linguist treats every path under examples/ as documentation and drops it from
+# the language summary, which hid 182 KB of project-authored MoonBit (the
+# firmware adapter and the separate-module consumer) and left the host tooling
+# Python looking like the primary language. These files are compiled sources,
+# not docs, so opt them back in.
+examples/folotoy-ai-passport/moonbit/** linguist-documentation=false
+examples/consumer/** linguist-documentation=false
+
+# moon.mod and moon.pkg are TOML. Linguist guesses AMPL from the .mod suffix,
+# which put a language this project never uses on the bar.
+*.mod linguist-language=TOML
+*.pkg linguist-language=TOML
+
