@@ -36,15 +36,27 @@ python tools/screenshot.py --raw dump.bin --width 240 --height 320 --output scre
 
 ## 架构分工
 
-- `examples/folotoy-ai-passport/moonbit/screenshot.mbt` 承载协议核心，由 `moon test` 覆盖：命令匹配
-  状态机（与"滑动窗口 + 行结束符复位"语义等价）、应答协议头构建、快照
-  几何校验。C 适配层只传整数，并通过两个 `passport_screenshot_header_*`
-  回调收回字节。
-- `examples/folotoy-ai-passport/main/fap_screenshot.c` 承载平台边界：显式安装 USB-Serial-JTAG 驱动
-  （RX 256 字节、TX 1024 字节）、低于 LVGL 的优先级 3 读取任务、静态
-  64 字节对齐的满屏快照缓冲（在 `bsp_lvgl_lock()` 下用
-  `lv_snapshot_take_to_draw_buf()` 渲染）、按 TX 环形缓冲定标的 512 字节
-  分块流式发送，以及二进制窗口内的日志静音。
+- `examples/folotoy-ai-passport/moonbit/screenshot.mbt` 承载协议核心与捕获会话，由 `moon test` 覆盖：命令匹配
+  状态机（与"滑动窗口 + 行结束符复位"语义等价）、应答协议头构建、以及
+  校验每条带的带序状态机（顺序、横向铺满、紧凑排布、不越面板边界）、决定一次捕获何时算完成的整帧记账、故障词汇表，以及条带字节序策略。C 适配层只传整数、报告事件，并通过两个
+  `passport_screenshot_header_*` 与 `passport_screenshot_name_*` 回调收回字节。
+- `examples/folotoy-ai-passport/main/fap_screenshot.c` 只承载平台边界，不含任何判定：显式安装 USB-Serial-JTAG 驱动
+  （RX 256 字节、TX 1024 字节）、低于 LVGL 的优先级 3 读取任务、面板
+  `draw_bitmap` 抽头、双槽条带环形缓冲、按 TX 环形缓冲定标的 512 字节
+  分块流式发送、挂/解捕获时的 LVGL 锁次序，以及二进制窗口内的日志静音。
+
+为什么按条带而不是一次整屏：本板无 PSRAM，内部 RAM 被切成 118,848 字节的
+常规堆区与另一个 116,496 字节的 retention 区，单次分配不能跨区，所以
+153,600 字节的整屏缓冲无论空闲多少都拿不到——实测挂起蓝牙栈后内部空闲堆
+有 183,652 字节，最大连续块却只有 106,496。蓝牙键盘本身还要占约 115KB，
+"整屏一次成型"与"蓝牙在线"在算术上互斥。于是捕获改走 LVGL 的部分刷新：
+显示驱动在 flush 时本来就持有一条 240x20 的条带，抽头逐条把它拷出来（并
+把 `esp_lvgl_port` 为 SPI 面板做的大端字节序换回小端），送入只在捕获期
+存在、结束立刻释放的 18.75KB 环形缓冲。主机端看到的字节流与原来完全一致，
+而蓝牙栈全程不需要挂起。
+
+为什么“完成判定”要留在 MoonBit：抽头（生产者，LVGL 任务）与串口写出（消费者）各自推进一个计数器，双槽下抽头会跑在发送任务前面。用“已产出字节数”判完成，会在最后一条带还没发出去时就报成功，静默把图截短。这条规则因此由宿主机单测钉住，而不是写在 C 的循环里。
+
 - `tools/screenshot.py` 是主机端抓取/转换工具；其纯函数由
   `tests/test_screenshot_convert.py` 覆盖。
 
@@ -54,3 +66,6 @@ python tools/screenshot.py --raw dump.bin --width 240 --height 320 --output scre
 - 日志与二进制应答共用同一路 USB-CDC；固件在应答窗口内静音日志，因此
   截屏字节只能通过协议客户端读取（普通终端转储不可靠）。
 - 电量、主题与屏幕内容按实际显示截取；没有合成画面或离屏渲染。
+- 挂上捕获会强制整屏失效重绘，所以读取期间屏幕会明显重画一次；主机取数
+  慢于设备产出时，LVGL 任务会在抽头里阻塞。因此得到的是连续一致的一帧，
+  不是叠加中的实况；主机拔线或过慢会以故障结束捕获，而不是卡死。

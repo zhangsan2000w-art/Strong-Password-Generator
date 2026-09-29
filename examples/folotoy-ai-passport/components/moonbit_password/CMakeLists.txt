@@ -22,6 +22,7 @@ set(MOONBIT_SOURCES
     "${MOONBIT_SOURCE_DIR}/random_source.mbt"
     "${MOONBIT_SOURCE_DIR}/security_policy.mbt"
     "${MOONBIT_SOURCE_DIR}/security_warning.mbt"
+    "${MOONBIT_SOURCE_DIR}/screenshot.mbt"
     "${MOONBIT_SOURCE_DIR}/settings.mbt"
     "${MOONBIT_SOURCE_DIR}/sound.mbt"
     "${MOONBIT_SOURCE_DIR}/state.mbt"

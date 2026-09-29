@@ -32,6 +32,13 @@ int32_t passport_ui_text_push(int32_t ch)
     return ch >= 1 && ch <= 255;
 }
 
+void passport_screenshot_name_reset(void) {}
+
+int32_t passport_screenshot_name_push(int32_t ch)
+{
+    return ch >= 0 && ch <= 127;
+}
+
 int32_t passport_dictionary_count(void)
 {
     return 2;

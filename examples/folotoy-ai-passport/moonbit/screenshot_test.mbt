@@ -112,10 +112,209 @@ test "header build formats arbitrary sizes" {
 }
 
 ///|
-test "geometry check accepts only tight-packed full-screen snapshots" {
-  @test.assert_eq(screenshot_geometry_ok(240, 320, 480, 153600, 240, 320), 1)
-  @test.assert_eq(screenshot_geometry_ok(239, 320, 480, 153600, 240, 320), 0)
-  @test.assert_eq(screenshot_geometry_ok(240, 319, 480, 153600, 240, 320), 0)
-  @test.assert_eq(screenshot_geometry_ok(240, 320, 484, 153600, 240, 320), 0)
-  @test.assert_eq(screenshot_geometry_ok(240, 320, 480, 153599, 240, 320), 0)
+test "band feed accepts contiguous full-width tight-packed bands" {
+  let mut rows = screenshot_band_initial()
+  let mut index = 0
+  while index < 320 / 20 {
+    rows = screenshot_band_feed(rows, 0, index * 20, 240, 20, 240 * 20 * 2, 240, 320)
+    @test.assert_eq(rows, (index + 1) * 20)
+    index += 1
+  }
+  @test.assert_eq(rows, 320)
+  @test.assert_eq(screenshot_band_complete(rows, 320), 1)
+}
+
+///|
+test "band feed accepts ragged band heights as long as they tile" {
+  let mut rows = screenshot_band_initial()
+  rows = screenshot_band_feed(rows, 0, 0, 240, 20, 240 * 20 * 2, 240, 320)
+  rows = screenshot_band_feed(rows, 0, 20, 240, 300, 240 * 300 * 2, 240, 320)
+  @test.assert_eq(rows, 320)
+}
+
+///|
+test "band feed rejects a gap in the row coverage" {
+  let rows = screenshot_band_feed(20, 0, 60, 240, 20, 240 * 20 * 2, 240, 320)
+  @test.assert_eq(rows, -band_gap)
+}
+
+///|
+test "band feed rejects an overlapping or replayed band" {
+  let rows = screenshot_band_feed(100, 0, 80, 240, 20, 240 * 20 * 2, 240, 320)
+  @test.assert_eq(rows, -band_overlap)
+}
+
+///|
+test "band feed rejects geometry that is not a full-width tight-packed strip" {
+  // 未横向铺满（x != 0 或 w != 面板宽）
+  @test.assert_eq(
+    screenshot_band_feed(0, 8, 0, 240, 20, 240 * 20 * 2, 240, 320),
+    -band_bad_geometry,
+  )
+  @test.assert_eq(
+    screenshot_band_feed(0, 0, 0, 239, 20, 239 * 20 * 2, 240, 320),
+    -band_bad_geometry,
+  )
+  // 字节数与 w*h*2 不符（带 stride 填充或色深不对都不放行）
+  @test.assert_eq(
+    screenshot_band_feed(0, 0, 0, 240, 20, 240 * 20 * 2 + 4, 240, 320),
+    -band_bad_geometry,
+  )
+  @test.assert_eq(
+    screenshot_band_feed(0, 0, 0, 240, 20, 240 * 20, 240, 320),
+    -band_bad_geometry,
+  )
+  // 零尺寸
+  @test.assert_eq(
+    screenshot_band_feed(0, 0, 0, 240, 0, 0, 240, 320),
+    -band_bad_geometry,
+  )
+}
+
+///|
+test "band feed refuses to run past the last panel row" {
+  let rows = screenshot_band_feed(310, 0, 310, 240, 20, 240 * 20 * 2, 240, 320)
+  @test.assert_eq(rows, -band_overflow)
+}
+
+///|
+test "capture is incomplete until every row is covered" {
+  @test.assert_eq(screenshot_band_complete(0, 320), 0)
+  @test.assert_eq(screenshot_band_complete(300, 320), 0)
+  @test.assert_eq(screenshot_band_complete(320, 320), 1)
+}
+
+///|
+fn produce_bands(count : Int) -> Unit {
+  let mut index = 0
+  while index < count {
+    session_produced(240 * 20 * 2)
+    index += 1
+  }
+}
+
+///|
+test "session requires a produced band before the header may go out" {
+  let need = session_begin(240, 320)
+  @test.assert_eq(need, 153600)
+  @test.assert_eq(session_header_allowed(), 0)
+  session_produced(9600)
+  @test.assert_eq(session_header_allowed(), 1)
+}
+
+///|
+// 这条钉住双槽环形缓冲下最容易犯的错：抽头会跑在发送任务前面，
+// 用"已产出"判完成会在尾带还没写出去时就收工，静默丢图。
+test "session is not done while produced bytes outrun sent bytes" {
+  session_begin(240, 320) |> ignore
+  // 抽头已经把 16 条带全部产出，发送任务还一条都没写
+  produce_bands(16)
+  let mut index = 0
+  while index < 15 {
+    // 已产出 153600、已写出 index*9600：只要写出落后于产出，就必须继续发，
+    // 哪怕产出侧早就铺满整屏。用"已产出"判完成就是在这里翻车的。
+    @test.assert_eq(session_action(), action_send_band)
+    session_band_sent(9600) |> ignore
+    index += 1
+  }
+  @test.assert_eq(session_result(), result_incomplete)
+  // 最后一条带写出去才算完成
+  @test.assert_eq(session_band_sent(9600), action_done)
+  @test.assert_eq(session_result(), result_ok)
+}
+
+///|
+test "session waits when everything produced so far has been sent" {
+  session_begin(240, 320) |> ignore
+  produce_bands(5)
+  let mut index = 0
+  while index < 5 {
+    session_band_sent(9600) |> ignore
+    index += 1
+  }
+  @test.assert_eq(session_action(), action_wait)
+  @test.assert_eq(session_result(), result_incomplete)
+}
+
+///|
+test "session aborts on the first fault and keeps its reason" {
+  session_begin(240, 320) |> ignore
+  produce_bands(1)
+  session_note_fault(result_band_fault)
+  @test.assert_eq(session_action(), action_abort)
+  @test.assert_eq(session_result(), result_band_fault)
+  // 收尾时的超时不能把真正的故障原因冲掉
+  session_note_fault(result_timed_out)
+  @test.assert_eq(session_result(), result_band_fault)
+  @test.assert_eq(session_header_allowed(), 0)
+}
+
+///|
+test "session refuses to call an over-sent frame done" {
+  session_begin(240, 320) |> ignore
+  produce_bands(16)
+  let mut index = 0
+  while index < 16 {
+    session_band_sent(9600) |> ignore
+    index += 1
+  }
+  @test.assert_eq(session_band_sent(9600), action_abort)
+}
+
+///|
+test "result names are emitted for every documented code" {
+  let collect_name = fn(result : Int) -> String {
+    let buffer : Array[Int] = []
+    session_result_name_with(result, fn(ch) { buffer.push(ch) })
+    let builder = StringBuilder()
+    for code in buffer {
+      match code.to_char() {
+        Some(ch) => builder.write_char(ch)
+        None => builder.write_char('?')
+      }
+    }
+    builder.to_string()
+  }
+  @test.assert_eq(collect_name(result_ok), "ok")
+  @test.assert_eq(collect_name(result_band_fault), "band-fault")
+  @test.assert_eq(collect_name(result_stalled), "stalled")
+  @test.assert_eq(collect_name(result_timed_out), "timed-out")
+  @test.assert_eq(collect_name(result_transport), "transport")
+  @test.assert_eq(collect_name(result_incomplete), "incomplete")
+  @test.assert_eq(collect_name(result_no_lock), "no-lvgl-lock")
+  @test.assert_eq(collect_name(99), "unknown")
+}
+
+///|
+test "band byte order contract stays little-endian on the wire" {
+  @test.assert_eq(screenshot_band_swap_pairs(), 1)
+}
+
+///|
+// C 侧要按 action 分支，必须携带一份同样的编号。这里把编号钉住：
+// 改动这里的数值会让本测试失败，提醒同步 main/fap_screenshot.c 的常量块。
+test "action codes match the C adapter constants" {
+  @test.assert_eq(action_wait, 0)
+  @test.assert_eq(action_send_band, 2)
+  @test.assert_eq(action_done, 3)
+  @test.assert_eq(action_abort, 4)
+}
+
+///|
+// 真机现象：整屏重绘后的第二个刷新周期会从 y=0 再画一遍，抽头若继续判定
+// 就会把已经攒齐的一帧整个作废（rows=320/320 却报 band-fault）。
+test "session stops accepting bands once the whole frame is produced" {
+  session_begin(240, 320) |> ignore
+  @test.assert_eq(session_accepting(), 1)
+  produce_bands(15)
+  @test.assert_eq(session_accepting(), 1)
+  session_produced(9600)
+  @test.assert_eq(session_accepting(), 0)
+}
+
+///|
+test "session stops accepting bands after a fault" {
+  session_begin(240, 320) |> ignore
+  session_note_band_fault()
+  @test.assert_eq(session_accepting(), 0)
 }

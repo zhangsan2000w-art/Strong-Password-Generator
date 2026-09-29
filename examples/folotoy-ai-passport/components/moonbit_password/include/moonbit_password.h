@@ -38,6 +38,8 @@ int32_t passport_moonbit_ble_keyboard_should_advertise(int32_t status, int32_t c
 int32_t passport_moonbit_ble_keyboard_retry_ms(void);
 int32_t passport_moonbit_ble_keyboard_link_event(int32_t state, int32_t event);
 int32_t passport_moonbit_ble_keyboard_link_ready(int32_t state);
+int32_t passport_moonbit_ble_keyboard_pairing_timeout_ms(void);
+int32_t passport_moonbit_ble_keyboard_pairing_stalled(int32_t state, int32_t elapsed_ms);
 int32_t passport_moonbit_ble_keyboard_link_status(int32_t state);
 int32_t passport_moonbit_ble_keyboard_action(uint64_t state, int32_t status);
 int32_t passport_moonbit_generate(uint64_t state);
@@ -94,7 +96,41 @@ int32_t passport_moonbit_screenshot_command_length(void);
 int32_t passport_moonbit_screenshot_matcher_initial(void);
 int32_t passport_moonbit_screenshot_matcher_feed(int32_t state, int32_t byte);
 int32_t passport_moonbit_screenshot_header_build(int32_t width, int32_t height, int32_t payload);
-int32_t passport_moonbit_screenshot_geometry_ok(int32_t width, int32_t height, int32_t stride, int32_t data_size, int32_t expected_width, int32_t expected_height);
+/* Band-stream capture accounting: returns the new covered-row count (>=0) or a
+ * negated error code (<0). See moonbit/screenshot.mbt for the invariants. */
+int32_t passport_moonbit_screenshot_band_initial(void);
+int32_t passport_moonbit_screenshot_band_feed(
+    int32_t rows,
+    int32_t x,
+    int32_t y,
+    int32_t w,
+    int32_t h,
+    int32_t byte_len,
+    int32_t expected_width,
+    int32_t expected_height);
+int32_t passport_moonbit_screenshot_band_complete(int32_t rows, int32_t expected_height);
+/* Panel-tap byte order policy: 1 = swap RGB565 pairs on the way out. */
+int32_t passport_moonbit_screenshot_band_swap_pairs(void);
+/* Capture session accounting. C reports events and asks what to do next;
+ * "when is a frame complete" lives here so it can be host-tested. */
+int32_t passport_moonbit_screenshot_session_begin(int32_t width, int32_t height);
+void passport_moonbit_screenshot_session_produced(int32_t bytes);
+void passport_moonbit_screenshot_session_note_fault(int32_t code);
+void passport_moonbit_screenshot_session_note_band_fault(void);
+void passport_moonbit_screenshot_session_note_stalled(void);
+void passport_moonbit_screenshot_session_note_timed_out(void);
+void passport_moonbit_screenshot_session_note_transport(void);
+void passport_moonbit_screenshot_session_note_no_memory(void);
+void passport_moonbit_screenshot_session_note_header(void);
+void passport_moonbit_screenshot_session_note_no_lock(void);
+int32_t passport_moonbit_screenshot_session_header_allowed(void);
+/* 1 while the tap should still accept strips; 0 once the frame is whole. */
+int32_t passport_moonbit_screenshot_session_accepting(void);
+int32_t passport_moonbit_screenshot_session_action(void);
+int32_t passport_moonbit_screenshot_session_band_sent(int32_t bytes);
+int32_t passport_moonbit_screenshot_session_result(void);
+/* Result label for the diagnostic log line, pushed into a C-side buffer. */
+int32_t passport_moonbit_screenshot_result_name_build(int32_t result);
 
 /* Pixel-UI animation math (moonbit/ui_pixel_math.mbt): mascot blink phase and
  * jump curve. Previously main/ui_pixel_math.c, which only the host C test used;
