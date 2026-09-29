@@ -17,6 +17,9 @@ pub fn generate_random_password(
   digits : Bool,
   symbols : Bool,
 ) -> Int {
+  if !random_policy_valid(length, true, true, digits, symbols) {
+    return generate_invalid_config
+  }
   @securegen.generate_password_compat(
     next_u32, emit, length, true, true, digits, symbols, false, false,
   )
@@ -34,6 +37,9 @@ pub fn generate_random_password_with_policy(
   exclude_ambiguous : Bool,
   safe_symbols_only : Bool,
 ) -> Int {
+  if !random_policy_valid(length, lowercase, uppercase, digits, symbols) {
+    return generate_invalid_config
+  }
   @securegen.generate_password_compat(
     next_u32, emit, length, lowercase, uppercase, digits, symbols, exclude_ambiguous,
     safe_symbols_only,
@@ -46,5 +52,8 @@ pub fn generate_pin(
   emit : (Int) -> Bool,
   length : Int,
 ) -> Int {
+  if length < pin_min_length || length > pin_max_length {
+    return generate_invalid_config
+  }
   @securegen.generate_pin_into(next_u32, emit, length)
 }
